@@ -1,35 +1,13 @@
-MuseGAN
+wolfGANg
 =========
-A Pytorch implementation of MuseGAN
 
-[Check out the generated piano music](https://akanametov.github.io/musegan/)
+to run the training: python train.py
+saves a MIDI file that is generated from the generator at the end
+shape of each dataset element and the produced data output: [4, 2, 16, 84]
+postProcess then converts the output into a MIDI file
 
-:star: Star this project on GitHub — it helps!
+MIDI file then can be listened to.
 
-[MuseGAN](https://arxiv.org/abs/1709.06298) is a generative model which allows to
-generate music.
+In order to run our metrics, we must use pypianoroll to run the evaluation metrics directly on the MIDI file
 
-## Table of content
-
-- [Training](#train)
-- [License](#license)
-- [Links](#links)
-
-## Training 
-
-See [demo](https://github.com/akanametov/MuseGAN/blob/dev/demo/demo.ipynb) for more details of training process.
-* The models are under `model.py`.
-* Helpfull modules are under `utils.py`.
-* The model trainer is under `trainer.py`.
-
-##### `Generator` and `Critic` losses
-
-<a><img src="images/losses.png" align="center" height="500px" width="700px"/></a>
-
-## License
-
-This project is licensed under MIT.
-
-## Links
-
-* [MuseGAN](https://arxiv.org/abs/1709.06298)
+--currently trying to setup server with this github repo so we can all run it
