@@ -8,10 +8,12 @@ from torch import nn
 from torch.utils.data import DataLoader
 from musegan import MuseGAN
 from data.utils import MidiDataset
+from ipdb import set_trace as bp
+from data.utils import postProcess
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'top', description='Train MusaGAN.')
-    parser.add_argument("--epochs", type=int, default=500, help="Number of epochs.")
+    parser.add_argument("--epochs", type=int, default=50, help="Number of epochs.")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size.")
     parser.add_argument("--z_dimension", type=int, default=32, help="Z(noise)-space dimension.")
     parser.add_argument("--g_channels", type=int, default=1024, help="Generator hidden channels.")
@@ -31,9 +33,24 @@ if __name__ == '__main__':
     print("Start training ...")
     print("Loading dataset ...")
     dataset = MidiDataset(path='data/chorales/Jsb16thSeparated.npz')
+    #bp()
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last=True)
     print("Loading model ...")
     musegan = MuseGAN(**gan_args)
     print("Start training ...")
-    _ = musegan.train(dataloader=dataloader, epochs=args.epochs)
+    finalmodel = musegan.train(dataloader=dataloader, epochs=args.epochs)
     print("Training finished.")
+    finalmodel = finalmodel.eval()
+    batch_size = 1
+    cords = torch.randn(batch_size, 32).to(device)
+    style = torch.randn(batch_size, 32).to(device)
+    melody = torch.randn(batch_size, 4, 32).to(device)
+    groove = torch.randn(batch_size, 4, 32).to(device)
+    fake = finalmodel(cords, style, melody, groove)
+    bp()
+    preds = fake.cpu().detach().numpy()
+    music_data = postProcess(preds)
+    filename = 'myexample.midi'
+    music_data.write('midi', fp=filename)
+    
+    

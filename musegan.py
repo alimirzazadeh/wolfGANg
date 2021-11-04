@@ -139,4 +139,4 @@ class MuseGAN():
             if epoch%10==0:
                 print("[Epoch %d/%d] [G loss: %.3f] [D loss: %.3f] ETA: %.3fs" % (epoch+1, epochs, ge_loss, ce_loss, tm))
                 print(f"[C loss | (fake: {cfe_loss:.3f}, real: {cre_loss:.3f}, penalty: {cpe_loss:.3f})]")
-        return None
+        return self.generator
