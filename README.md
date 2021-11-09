@@ -9,5 +9,7 @@ postProcess then converts the output into a MIDI file
 MIDI file then can be listened to.
 
 In order to run our metrics, we must use pypianoroll to run the evaluation metrics directly on the MIDI file
+Installation Instructions: pip install pypianoroll
+Documentation: https://salu133445.github.io/pypianoroll/getting_started.html
 
 --currently trying to setup server with this github repo so we can all run it
