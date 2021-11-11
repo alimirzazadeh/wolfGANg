@@ -11,3 +11,7 @@ MIDI file then can be listened to.
 In order to run our metrics, we must use pypianoroll to run the evaluation metrics directly on the MIDI file
 
 --currently trying to setup server with this github repo so we can all run it
+
+Bach Chorales Instruments Used:
+String, Bass, Double Bass, Organ
+
