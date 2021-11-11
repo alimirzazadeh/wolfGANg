@@ -7,10 +7,10 @@ import numpy as np
 def metrics(mid_path, verbose=True):
     multitrack = pypianoroll.read(mid_path)
     tracks = multitrack.tracks
-    empty_beat_rate = [0] * 4
-    qualified_note_rate = [0] * 4
-    n_pitch_class_used = [0] * 4
-    TD = [[0] * 4] * 4
+    empty_beat_rate = np.array([0] * 4)
+    qualified_note_rate = np.array([0] * 4)
+    n_pitch_class_used = np.array([0] * 4)
+    TD = np.array([[0] * 4] * 4)
 
     if verbose:
         print("Multitrack information: \n")
