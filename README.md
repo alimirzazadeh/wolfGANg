@@ -13,3 +13,7 @@ Installation Instructions: pip install pypianoroll
 Documentation: https://salu133445.github.io/pypianoroll/getting_started.html
 
 --currently trying to setup server with this github repo so we can all run it
+
+Bach Chorales Instruments Used:
+String, Bass, Double Bass, Organ
+
