@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-
+from .utils import CodeReduction
 
 class MuseCritic(nn.Module):
     
@@ -10,11 +10,12 @@ class MuseCritic(nn.Module):
     n_pitches = 84
     
     def __init__(self,
+                 c_dimensions: int=1,
                  hid_channels: int=128,
                  hid_features: int=1024,
-                 out_features: int=1):
+                 out_features: int=1, prob_c=False):
         super().__init__()
-        self.net = nn.Sequential(
+        self.shared = nn.Sequential(
             # input shape: (batch_size, n_tracks, n_bars, n_steps_per_bar, n_pitches)
             nn.Conv3d(self.n_tracks, hid_channels, (2, 1, 1), (1, 1, 1), padding=0),
             nn.LeakyReLU(0.3, inplace=True),
@@ -34,6 +35,8 @@ class MuseCritic(nn.Module):
             nn.Conv3d(hid_channels, hid_channels, (1, 2, 1), (1, 2, 1), padding=0),
             nn.LeakyReLU(0.3, inplace=True),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar//4, n_pitches//12)
+        )
+        self.real_fake = nn.Sequential(
             nn.Conv3d(hid_channels, 2*hid_channels, (1, 4, 1), (1, 2, 1), padding=(0, 1, 0)),
             nn.LeakyReLU(0.3, inplace=True),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar//8, n_pitches//12)
@@ -47,7 +50,14 @@ class MuseCritic(nn.Module):
             nn.Linear(hid_features, out_features),
             # output shape: (batch_size, out_features) 
         )
+        self.pred_c = nn.Sequential(
+            nn.Conv3d(hid_channels, 2*hid_channels, (1, 4, 1), (1, 2, 1), padding=(0, 1, 0)),
+            nn.LeakyReLU(0.3, inplace=True),
+            # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar//4, n_pitches//12)
+            CodeReduction(c_dimensions, ndf*ndf_multi[-2], 8, prob=prob_c)
+            # output shape: (batch_size, 2*n_tracks + 2, c_dim)
+        )
 
-    def forward(self, x):
-        fx = self.net(x)
-        return fx
+    def forward(self, mus):
+        rep = self.shared(mus)
+        return self.real_fake(rep), self.pred_c(rep)
