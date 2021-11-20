@@ -12,47 +12,77 @@ class MuseGenerator(nn.Module):
     n_pitches = 84
     
     def __init__(self,
+                 c_dimension=1,
                  z_dimension=32,
                  hid_channels=1024,
                  hid_features=1024,
                  out_channels=1):
         super().__init__()
         # chords generator
-        self.chords_network = TemporalNetwork(z_dimension=z_dimension,
+        self.c_chords_network = TemporalNetwork(dimension=c_dimension,
+                                              hid_channels=hid_channels)
+        self.z_chords_network = TemporalNetwork(dimension=z_dimension,
                                               hid_channels=hid_channels)
         # melody generators
-        self.melody_networks = nn.ModuleDict({})
+        self.c_melody_networks = nn.ModuleDict({})
         for n in range(self.n_tracks):
-            self.melody_networks.add_module('melodygen_'+str(n),
-                                            TemporalNetwork(z_dimension=z_dimension,
+            self.c_melody_networks.add_module('c_melodygen_'+str(n),
+                                            TemporalNetwork(dimension=c_dimension,
+                                                            hid_channels=hid_channels))
+        self.z_melody_networks = nn.ModuleDict({})
+        for n in range(self.n_tracks):
+            self.z_melody_networks.add_module('z_melodygen_'+str(n),
+                                            TemporalNetwork(dimension=c_dimension,
                                                             hid_channels=hid_channels))
         # bar generators
         self.bar_generators = nn.ModuleDict({})   
         for n in range(self.n_tracks):
             self.bar_generators.add_module('bargen_'+str(n),
-                                           BarGenerator(z_dimension=z_dimension,
+                                           BarGenerator(c_dimension=c_dimension,
+                                                        z_dimension=z_dimension,
                                                         hid_features=hid_features,
                                                         hid_channels=hid_channels//2,
                                                         out_channels=out_channels))
         # musegan generator compiled
         
-    def forward(self, chords, style, melody, groove):
-        # chords shape: (batch_size, z_dimension)
-        # style shape: (batch_size, z_dimension)
-        # melody shape: (batch_size, n_tracks, z_dimension)
-        # groove shape: (batch_size, n_tracks, z_dimension)
-        chord_outs = self.chords_network(chords)
+    def forward(self, c, z):
+        # c shape: (batch_size, 2*n_tracks + 2, c_dimension)
+        c_chords = c[:, 0, :]
+        c_style = c[:, 1, :]
+        c_melody = c[:, 2:2 + self.n_tracks, :]
+        c_groove = c[:, 2 + self.n_tracks:, :]
+        
+        
+        # z shape: (batch_size, 2*n_tracks + 2, z_dimension)
+        z_chords = z[:, 0, :]
+        z_style = z[:, 1, :]
+        z_melody = z[:, 2:2 + self.n_tracks, :]
+        z_groove = z[:, 2 + self.n_tracks:, :]
+
+        # chords shape: (batch_size, _dimension)
+        # style shape: (batch_size, _dimension)
+        # melody shape: (batch_size, n_tracks, _dimension)
+        # groove shape: (batch_size, n_tracks, _dimension)
+        c_chord_outs = self.c_chords_network(c_chords)
+        z_chord_outs = self.z_chords_network(z_chords)
         bar_outs = []
         for bar in range(self.n_bars):
             track_outs = []
-            chord_out = chord_outs[:, :, bar]
-            style_out = style
+            c_chord_out = c_chord_outs[:, :, bar]
+            z_chord_out = z_chord_outs[:, :, bar]
+            c_style_out = c_style
+            z_style_out = z_style
             for track in range(self.n_tracks):
-                melody_in = melody[:, track, :]
-                melody_out = self.melody_networks['melodygen_'+str(track)](melody_in)[:, :, bar]
-                groove_out = groove[:, track, :]
-                z = torch.cat([chord_out, style_out, melody_out, groove_out], dim=1)
-                track_outs.append(self.bar_generators['bargen_'+str(track)](z))
+                c_melody_in = c_melody[:, track, :]
+                z_melody_in = z_melody[:, track, :]
+                c_melody_out = self.c_melody_networks['c_melodygen_'+str(track)](c_melody_in)[:, :, bar]
+                z_melody_out = self.z_melody_networks['z_melodygen_'+str(track)](z_melody_in)[:, :, bar]
+                c_groove_out = c_groove[:, track, :]
+                z_groove_out = z_groove[:, track, :]
+                c = torch.cat([c_chord_out, c_style_out, c_melody_out, c_groove_out], dim=1)
+                z = torch.cat([z_chord_out, z_style_out, z_melody_out, z_groove_out], dim=1)
+                track_outs.append(self.bar_generators['bargen_'+str(track)](c, z))
+                # output shape: (batch_size, out_channels, 1, n_steps_per_bar, n_pitches)
             track_out = torch.cat(track_outs, dim=1)
             bar_outs.append(track_out)
         out = torch.cat(bar_outs, dim=2)

@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from .utils import Reshape
+from .utils import Reshape, OOGANInput
 
 
 class BarGenerator(nn.Module):
@@ -9,17 +9,28 @@ class BarGenerator(nn.Module):
     n_pitches = 84
     
     def __init__(self,
+                 c_dimension: int=3,
                  z_dimension: int=32,
                  hid_features: int=1024,
                  hid_channels: int=512,
                  out_channels: int=1):
         super().__init__()
+        self.input_block = OOGANInput(c_dimension,
+                                      z_dimension,
+                                      hid_channels, 
+                                      hid_channels)
         self.net = nn.Sequential(
-            # input shape: (batch_size, 4*z_dimension)
-            nn.Linear(4 * z_dimension, hid_features),
-            nn.BatchNorm1d(hid_features),
-            nn.ReLU(inplace=True),
-            # output shape: (batch_size, hid_features)
+            # # input shape: (batch_size, 4*z_dimension)
+            # nn.Linear(4 * z_dimension, hid_features),
+            # nn.BatchNorm1d(hid_features),
+            # nn.ReLU(inplace=True),
+            # # output shape: (batch_size, hid_features)
+
+            # input shape: (bach_size, c_dimension/z_dimension)
+            self.input_block,
+            # output shape: (bach_size, hid_channels, 8, 8)
+            
+            # TODO find shape
             Reshape(shape=[hid_channels, hid_features//hid_channels, 1]),
             # output shape: (batch_size, hid_channels, hid_features//hid_channels, 1)
             nn.ConvTranspose2d(hid_channels, hid_channels,
@@ -49,6 +60,6 @@ class BarGenerator(nn.Module):
             # output shape: (batch_size, out_channels, 1, n_steps_per_bar, n_pitches)
         )
         
-    def forward(self, x):
-        fx = self.net(x)
+    def forward(self, c, z=None):
+        fx = self.net(c, z)
         return fx

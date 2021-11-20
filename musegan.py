@@ -12,6 +12,7 @@ from criterion import WassersteinLoss, GradientPenalty
 
 class MuseGAN():
     def __init__(self,
+                 c_dimension=3,
                  z_dimension=32,
                  g_channels=1024,
                  g_features=1024,
@@ -22,7 +23,8 @@ class MuseGAN():
                  device='cuda:0'):
         
         # generator and optimizer
-        self.generator = MuseGenerator(z_dimension = z_dimension,
+        self.generator = MuseGenerator(c_dimension = c_dimension,
+                                       z_dimension = z_dimension,
                                        hid_channels = g_channels,
                                        hid_features = g_features,
                                        out_channels = 1).to(device)
@@ -31,7 +33,8 @@ class MuseGAN():
                                             lr=g_lr, betas=(0.5, 0.9))
         
         # critic and optimizer
-        self.critic = MuseCritic(hid_channels = c_channels,
+        self.critic = MuseCritic(c_dimension = c_dimension,
+                                 hid_channels = c_channels,
                                  hid_features = c_features,
                                  out_features = 1).to(device)
         self.critic = self.critic.apply(initialize_weights)
@@ -81,7 +84,7 @@ class MuseGAN():
                     # mix `real` and `fake` melody
                     realfake = self.alpha * real + (1. - self.alpha) * fake
                     # get critic's `fake` loss
-                    fake_pred = self.critic(fake)
+                    fake_pred, c_pred = self.critic(fake)
                     fake_target = - torch.ones_like(fake_pred)
                     fake_loss = self.c_criterion(fake_pred, fake_target)
                     # get critic's `real` loss
