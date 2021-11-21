@@ -42,15 +42,17 @@ if __name__ == '__main__':
     print("Training finished.")
     finalmodel = finalmodel.eval()
     batch_size = 1
-    cords = torch.randn(batch_size, 32).to(device)
-    style = torch.randn(batch_size, 32).to(device)
-    melody = torch.randn(batch_size, 4, 32).to(device)
-    groove = torch.randn(batch_size, 4, 32).to(device)
-    fake = finalmodel(cords, style, melody, groove)
-    bp()
-    preds = fake.cpu().detach().numpy()
-    music_data = postProcess(preds)
-    filename = 'myexample.midi'
-    music_data.write('midi', fp=filename)
-    
-    
+
+
+    # generate MIDI files components in a for loop
+    for i in range(3):
+        cords = torch.randn(batch_size, 32).to(device)
+        style = torch.randn(batch_size, 32).to(device)
+        melody = torch.randn(batch_size, 4, 32).to(device)
+        groove = torch.randn(batch_size, 4, 32).to(device)
+        fake = finalmodel(cords, style, melody, groove)
+        bp()
+        preds = fake.cpu().detach().numpy()
+        music_data = postProcess(preds)
+        filename = 'myexample' + str(i) + '.midi'
+        music_data.write('midi', fp=filename)
