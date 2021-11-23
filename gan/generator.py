@@ -12,14 +12,14 @@ class MuseGenerator(nn.Module):
     n_pitches = 84
     
     def __init__(self,
-                 c_dimension=1,
+                 c_dimension=10,
                  z_dimension=32,
                  hid_channels=1024,
                  hid_features=1024,
                  out_channels=1):
         super().__init__()
         # chords generator
-        self.c_chords_network = TemporalNetwork(dimension=c_dimension,
+        self.c_chords_network = TemporalNetwork(dimension=1,
                                               hid_channels=hid_channels)
         self.z_chords_network = TemporalNetwork(dimension=z_dimension,
                                               hid_channels=hid_channels)
@@ -27,30 +27,32 @@ class MuseGenerator(nn.Module):
         self.c_melody_networks = nn.ModuleDict({})
         for n in range(self.n_tracks):
             self.c_melody_networks.add_module('c_melodygen_'+str(n),
-                                            TemporalNetwork(dimension=c_dimension,
+                                            TemporalNetwork(dimension=1,
                                                             hid_channels=hid_channels))
         self.z_melody_networks = nn.ModuleDict({})
         for n in range(self.n_tracks):
             self.z_melody_networks.add_module('z_melodygen_'+str(n),
-                                            TemporalNetwork(dimension=c_dimension,
+                                            TemporalNetwork(dimension=z_dimension,
                                                             hid_channels=hid_channels))
         # bar generators
         self.bar_generators = nn.ModuleDict({})   
         for n in range(self.n_tracks):
             self.bar_generators.add_module('bargen_'+str(n),
-                                           BarGenerator(c_dimension=c_dimension,
-                                                        z_dimension=z_dimension,
+                                           BarGenerator(c_dimension=4,
+                                                        z_dimension=4*z_dimension,
                                                         hid_features=hid_features,
                                                         hid_channels=hid_channels//2,
                                                         out_channels=out_channels))
         # musegan generator compiled
         
     def forward(self, c, z):
-        # c shape: (batch_size, 2*n_tracks + 2, c_dimension)
-        c_chords = c[:, 0, :]
-        c_style = c[:, 1, :]
-        c_melody = c[:, 2:2 + self.n_tracks, :]
-        c_groove = c[:, 2 + self.n_tracks:, :]
+        # print("Generator:")
+        # print("c: ", *c.shape, c.dtype)
+        # c shape: (batch_size, c_dimension)
+        c_chords = c[:, 0].reshape((-1, 1, 1))
+        c_style = c[:, 1].reshape((-1, 1))
+        c_melody = c[:, 2:2 + self.n_tracks].reshape((-1, self.n_tracks, 1))
+        c_groove = c[:, 2 + self.n_tracks:].reshape((-1, self.n_tracks, 1))
         
         
         # z shape: (batch_size, 2*n_tracks + 2, z_dimension)
@@ -73,12 +75,13 @@ class MuseGenerator(nn.Module):
             c_style_out = c_style
             z_style_out = z_style
             for track in range(self.n_tracks):
-                c_melody_in = c_melody[:, track, :]
-                z_melody_in = z_melody[:, track, :]
+                c_melody_in = c_melody[:, track]
+                z_melody_in = z_melody[:, track]
                 c_melody_out = self.c_melody_networks['c_melodygen_'+str(track)](c_melody_in)[:, :, bar]
                 z_melody_out = self.z_melody_networks['z_melodygen_'+str(track)](z_melody_in)[:, :, bar]
                 c_groove_out = c_groove[:, track, :]
                 z_groove_out = z_groove[:, track, :]
+                # print(c_chord_out.shape, c_style_out.shape, c_melody_out.shape, c_groove_out.shape)
                 c = torch.cat([c_chord_out, c_style_out, c_melody_out, c_groove_out], dim=1)
                 z = torch.cat([z_chord_out, z_style_out, z_melody_out, z_groove_out], dim=1)
                 track_outs.append(self.bar_generators['bargen_'+str(track)](c, z))

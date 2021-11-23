@@ -29,5 +29,6 @@ class TemporalNetwork(nn.Module):
         )
 
     def forward(self, v):
+        # print("v:", *v.shape, v.dtype)
         fx = self.net(v)
         return fx

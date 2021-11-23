@@ -38,21 +38,29 @@ if __name__ == '__main__':
     print("Loading model ...")
     musegan = MuseGAN(**gan_args)
     print("Start training ...")
-    finalmodel = musegan.train(dataloader=dataloader, epochs=args.epochs)
+    finalmodel = musegan.train(dataloader=dataloader, epochs=1)
     print("Training finished.")
     finalmodel = finalmodel.eval()
+
     batch_size = 1
-
-
-    # generate MIDI files components in a for loop
-    for i in range(3):
-        cords = torch.randn(batch_size, 32).to(device)
-        style = torch.randn(batch_size, 32).to(device)
-        melody = torch.randn(batch_size, 4, 32).to(device)
-        groove = torch.randn(batch_size, 4, 32).to(device)
-        fake = finalmodel(cords, style, melody, groove)
-        bp()
+    z = torch.randn(batch_size, 10, 32).to(device)
+    for i in range(10):
+        c = [float(0)]*10
+        c[i] = float(1)
+        c = torch.tensor([c]).to(device)
+        fake = finalmodel(c, z)
+        # bp()
         preds = fake.cpu().detach().numpy()
         music_data = postProcess(preds)
-        filename = 'myexample' + str(i) + '.midi'
+        filename = f'myexample_{i}.midi'
         music_data.write('midi', fp=filename)
+    c = [float(0)]*10
+    c = torch.tensor([c]).to(device)
+    fake = finalmodel(c, z)
+    # bp()
+    preds = fake.cpu().detach().numpy()
+    music_data = postProcess(preds)
+    filename = f'myexample_.midi'
+    music_data.write('midi', fp=filename)
+    
+    

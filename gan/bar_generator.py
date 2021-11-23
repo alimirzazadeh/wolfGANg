@@ -20,15 +20,17 @@ class BarGenerator(nn.Module):
                                       hid_channels, 
                                       hid_channels)
         self.net = nn.Sequential(
+            # input shape: (bach_size, c_dimension/z_dimension)
+            # self.input_block,
+            # output shape: (bach_size, hid_channels, 8, 8)
+            Reshape(shape=[hid_channels*64]),
+
             # # input shape: (batch_size, 4*z_dimension)
-            # nn.Linear(4 * z_dimension, hid_features),
-            # nn.BatchNorm1d(hid_features),
-            # nn.ReLU(inplace=True),
+            nn.Linear(hid_channels*64, hid_features),
+            nn.BatchNorm1d(hid_features),
+            nn.ReLU(inplace=True),
             # # output shape: (batch_size, hid_features)
 
-            # input shape: (bach_size, c_dimension/z_dimension)
-            self.input_block,
-            # output shape: (bach_size, hid_channels, 8, 8)
             
             # TODO find shape
             Reshape(shape=[hid_channels, hid_features//hid_channels, 1]),
@@ -61,5 +63,6 @@ class BarGenerator(nn.Module):
         )
         
     def forward(self, c, z=None):
-        fx = self.net(c, z)
+        feat = self.input_block(c=c, z=z)
+        fx = self.net(feat)
         return fx

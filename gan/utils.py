@@ -3,6 +3,10 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.nn.utils import spectral_norm
+from torch.autograd import Variable
+import math
+
+import numpy as np
 
 
 def initialize_weights(layer, mean=0.0, std=0.02):
@@ -12,6 +16,105 @@ def initialize_weights(layer, mean=0.0, std=0.02):
         nn.init.normal_(layer.weight, mean, std)
         nn.init.constant_(layer.bias, 0)
 
+class Normal(nn.Module):
+    """Samples from a Normal distribution using the reparameterization trick.
+    """
+
+    def __init__(self, mu=0, sigma=1):
+        super(Normal, self).__init__()
+        self.normalization = Variable(torch.Tensor([np.log(2 * np.pi)]))
+
+        self.mu = Variable(torch.Tensor([mu]))
+        self.logsigma = Variable(torch.Tensor([math.log(sigma)]))
+
+    def _check_inputs(self, size, mu_logsigma):
+        if size is None and mu_logsigma is None:
+            raise ValueError(
+                'Either one of size or params should be provided.')
+        elif size is not None and mu_logsigma is not None:
+            mu = mu_logsigma.select(-1, 0).expand(size)
+            logsigma = mu_logsigma.select(-1, 1).expand(size)
+            return mu, logsigma
+        elif size is not None:
+            mu = self.mu.expand(size)
+            logsigma = self.logsigma.expand(size)
+            return mu, logsigma
+        elif mu_logsigma is not None:
+            mu = mu_logsigma.select(-1, 0)
+            logsigma = mu_logsigma.select(-1, 1)
+            return mu, logsigma
+        else:
+            raise ValueError(
+                'Given invalid inputs: size={}, mu_logsigma={})'.format(
+                    size, mu_logsigma))
+
+    def sample(self, size=None, params=None):
+        mu, logsigma = self._check_inputs(size, params)
+        std_z = Variable(torch.randn(mu.size()).type_as(mu.data))
+        sample = std_z * torch.exp(logsigma) + mu
+        return sample
+
+    def log_density(self, sample, params=None):
+        if params is not None:
+            mu, logsigma = self._check_inputs(None, params)
+        else:
+            mu, logsigma = self._check_inputs(sample.size(), None)
+            mu = mu.type_as(sample)
+            logsigma = logsigma.type_as(sample)
+
+        c = self.normalization.type_as(sample.data)
+        inv_sigma = torch.exp(-logsigma)
+        tmp = (sample - mu) * inv_sigma
+        return -0.5 * (tmp * tmp + 2 * logsigma + c)
+
+    def NLL(self, params, sample_params=None):
+        """Analytically computes
+            E_N(mu_2,sigma_2^2) [ - log N(mu_1, sigma_1^2) ]
+        If mu_2, and sigma_2^2 are not provided, defaults to entropy.
+        """
+        mu, logsigma = self._check_inputs(None, params)
+        if sample_params is not None:
+            sample_mu, sample_logsigma = self._check_inputs(None, sample_params)
+        else:
+            sample_mu, sample_logsigma = mu, logsigma
+
+        c = self.normalization.type_as(sample_mu.data)
+        nll = logsigma.mul(-2).exp() * (sample_mu - mu).pow(2) \
+            + torch.exp(sample_logsigma.mul(2) - logsigma.mul(2)) + 2 * logsigma + c
+        return nll.mul(0.5)
+
+    def kld(self, params):
+        """Computes KL(q||p) where q is the given distribution and p
+        is the standard Normal distribution.
+        """
+        mu, logsigma = self._check_inputs(None, params)
+        # see Appendix B from VAE paper:
+        # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+        # https://arxiv.org/abs/1312.6114
+        # 0.5 * sum(1 + log(sigma^2) - mean^2 - sigma^2)
+        kld = logsigma.mul(2).add(1) - mu.pow(2) - logsigma.exp().pow(2)
+        kld.mul_(-0.5)
+        return kld
+
+    def get_params(self):
+        return torch.cat([self.mu, self.logsigma])
+
+    @property
+    def nparams(self):
+        return 2
+
+    @property
+    def ndim(self):
+        return 1
+
+    @property
+    def is_reparameterizable(self):
+        return True
+
+    def __repr__(self):
+        tmpstr = self.__class__.__name__ + ' ({:.3f}, {:.3f})'.format(
+            self.mu.data[0], self.logsigma.exp().data[0])
+        return tmpstr
 
 class Reshape(nn.Module):
     def __init__(self, shape=[32, 1, 1]):
@@ -20,6 +123,7 @@ class Reshape(nn.Module):
         
     def forward(self, x):
         batch_size = x.size(0)
+        # print("reshape: ", *x.shape, "\t to ", x.shape[0], *self.shape)
         return x.view(batch_size, *self.shape)
 
 
@@ -29,6 +133,9 @@ class UnFlatten(nn.Module):
         self.block_size = block_size
 
     def forward(self, x):
+        # print("unflat")
+        # print(x.shape)
+        # print(x.view(x.size(0), -1, self.block_size, self.block_size).shape)
         return x.view(x.size(0), -1, self.block_size, self.block_size)
 
 
@@ -63,6 +170,7 @@ class OrthorConv2d(nn.Module):
         self.opt_orth.step()
 
     def forward(self, feat):
+        # print("orthoconv: ", feat.shape)
         if self.training:
             self.orthogonal_update()
         return self.conv(feat)
@@ -73,7 +181,7 @@ class OrthorTransform(nn.Module):
 
         self.c_dim = c_dim
         self.feat_hw = feat_hw
-        self.weight = nn.Parameter(torch.randn(1, c_dim, feat_hw, feat_hw))
+        self.weight = nn.Parameter(torch.randn(1, c_dim, 5, 1)) #feat_hw, feat_hw))
         self.opt_orth = optim.Adam(self.parameters(), lr=1e-4, betas=(0.5, 0.99))
 
     def orthogonal_update(self):
@@ -96,6 +204,7 @@ class CodeReduction(nn.Module):
         if prob:
             c_dim *= 2
         self.c_dim = c_dim        
+        self.feat_c, self.feat_hw, self.prob = feat_c, feat_hw, prob
         self.main = nn.Sequential(
             nn.Conv2d(feat_c, c_dim, 3, 1, 1, bias=True, groups=1),
             nn.LeakyReLU(0.1),
@@ -105,9 +214,14 @@ class CodeReduction(nn.Module):
         self.trans = OrthorTransform(c_dim=c_dim, feat_hw=feat_hw//2)
     
     def forward(self, feat):
+        # print(self.c_dim, self.feat_c, self.feat_hw, self.prob)
         # input shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar//4, n_pitches//12)
-        pred_c = self.trans( self.main(feat) )
-        return pred_c.view(feat.size(0), -1, self.c_dim)
+        # print("Reduction: ", feat.shape)
+        main = self.main(feat)
+        # print("main: ", main.shape)
+        pred_c = self.trans( main )
+        # print("pred_c: ", pred_c.shape)
+        return pred_c.view(feat.size(0), self.c_dim)
 
 
 class ChannelAttentionMask(nn.Module):
@@ -196,6 +310,11 @@ class OOGANInput(nn.Module):
     def __init__(self, c_dim, z_dim, feat_4, feat_8):
         super().__init__()
 
+        self.c_dim = c_dim
+        self.z_dim = z_dim
+        self.feat_4 = feat_4
+        self.feat_8 = feat_8
+
         self.init_noise = nn.Parameter(torch.randn(1, feat_4, 4, 4))
         
         self.from_c_4 = nn.Sequential(
@@ -219,6 +338,12 @@ class OOGANInput(nn.Module):
 
     def forward(self, c, z=None):
         #feat = self.init_noise.expand(c.size(0), -1, -1, -1)
+        # print("in: ", 
+        # self.c_dim,
+        # self.z_dim,
+        # self.feat_4,
+        # self.feat_8)
+
         feat = self.from_c_4(c) #+ feat
         feat = self.from_c_8(feat)
         if self.z_dim>0 and z is not None:

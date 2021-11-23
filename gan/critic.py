@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from .utils import CodeReduction
+from .utils import CodeReduction, Reshape
 
 class MuseCritic(nn.Module):
     
@@ -10,7 +10,7 @@ class MuseCritic(nn.Module):
     n_pitches = 84
     
     def __init__(self,
-                 c_dimensions: int=1,
+                 c_dimension: int=1,
                  hid_channels: int=128,
                  hid_features: int=1024,
                  out_features: int=1, prob_c=False):
@@ -51,13 +51,16 @@ class MuseCritic(nn.Module):
             # output shape: (batch_size, out_features) 
         )
         self.pred_c = nn.Sequential(
-            nn.Conv3d(hid_channels, 2*hid_channels, (1, 4, 1), (1, 2, 1), padding=(0, 1, 0)),
+            nn.Conv3d(hid_channels, 10*c_dimension, (1, 4, 1), (1, 2, 1), padding=(0, 1, 0)),
             nn.LeakyReLU(0.3, inplace=True),
+            Reshape(shape=[10, 10, 2]),
             # output shape: (batch_size, hid_channels, n_bars//2, n_steps_per_bar//4, n_pitches//12)
-            CodeReduction(c_dimensions, ndf*ndf_multi[-2], 8, prob=prob_c)
+            CodeReduction(c_dimension, 10, 8, prob=prob_c)
             # output shape: (batch_size, 2*n_tracks + 2, c_dim)
         )
 
     def forward(self, mus):
+        # print("Critic in: ", mus.shape)
         rep = self.shared(mus)
+        # print("Representation: ", rep.shape)
         return self.real_fake(rep), self.pred_c(rep)
