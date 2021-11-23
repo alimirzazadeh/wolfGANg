@@ -215,12 +215,14 @@ class MuseGAN():
 
 
     def train_step(self, real_image, n_iter):
-        cfb_loss, crb_loss, cpb_loss, cb_loss = 0, 0, 0, 0
+        cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss = 0, 0, 0, 0, 0
         if self.running_avg_g is None:
             self.running_avg_g = copy_G_params(self.generator)
 
         batch_size = real_image.size(0)
-        c_ratio = 5
+        c_ratio = int(max(8-(n_iter/15.0), 1.0))
+        g_ratio = int(min(1+(n_iter/15.0), 8))
+        
         for _ in range(c_ratio):
             ### prepare data part
             z, c, c_idx = self.sample_z_and_c(batch_size, n_iter)
@@ -261,18 +263,20 @@ class MuseGAN():
             cpb_loss += 10* penalty.item()/c_ratio
             cb_loss += closs.item()/c_ratio
         
-        
-        ### prepare data part
-        z, c, c_idx = self.sample_z_and_c(batch_size, n_iter)
-        g_img = self.generator(c=c, z=z)        
-        r_img = real_image.to(self.device)
+        for _ in range(g_ratio):
+            ### prepare data part
+            z, c, c_idx = self.sample_z_and_c(batch_size, n_iter)
+            g_img = self.generator(c=c, z=z)        
+            r_img = real_image.to(self.device)
 
-        ### Generator part
-        self.generator.zero_grad()
-        pred_g, _ = self.critic(g_img)
-        loss_g = -pred_g.mean()
-        loss_g.backward()
-        self.g_optimizer.step()
+            ### Generator part
+            self.generator.zero_grad()
+            pred_g, _ = self.critic(g_img)
+            loss_g = -pred_g.mean()
+            loss_g.backward()
+            self.g_optimizer.step()
+
+            gb_loss += loss_g.item()/g_ratio
 
         ### Mutual Information between c and c' Part
         self.generator.zero_grad()
@@ -298,13 +302,14 @@ class MuseGAN():
         loss_info = self.recon_weight * loss_g_recon_c + self.onehot_weight * loss_g_onehot
         loss_info.backward()
 
+        # TODO look into
         self.opt_info.step()
 
         for p, avg_p in zip(self.generator.parameters(), self.running_avg_g):
             avg_p.mul_(0.999).add_(0.001, p.data)
 
         # print("losses: ", cfb_loss, crb_loss, cpb_loss, cb_loss, loss_g.item(), loss_g_onehot.item(), loss_g_recon_c.item())
-        return cfb_loss, crb_loss, cpb_loss, cb_loss, loss_g.item(), loss_g_onehot.item(), loss_g_recon_c.item()
+        return cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss, loss_g_onehot.item(), loss_g_recon_c.item()
     
 
 
@@ -315,7 +320,7 @@ class MuseGAN():
               display_epoch=10,
               device='cpu'):
         # alpha parameter for mixing images
-        self.alpha = torch.rand((batch_size, 1, 1, 1, 1)).requires_grad_().to(device)
+        self.alpha = torch.rand((batch_size, 1, 1, 1, 1)).requires_grad_().to(self.device)
         for epoch in range(epochs):
             ge_loss, ce_loss = 0, 0
             cfe_loss, cre_loss, cpe_loss, oe_loss, cse_loss = 0, 0, 0, 0, 0
@@ -415,7 +420,7 @@ class MuseGAN():
             self.data['cs_loss'].append(cse_loss)
             self.data['o_loss'].append(oe_loss)
             # display losses
-            if epoch%10==0:
+            if (epoch+1)%display_epoch==0:
                 print("[Epoch %d/%d] [G loss: %.3f] [D loss: %.3f] ETA: %.3fs" % (epoch+1, epochs, ge_loss, ce_loss, tm))
                 print(f"[C loss | (fake: {cfe_loss:.3f}, real: {cre_loss:.3f}, penalty: {cpe_loss:.3f})]")
                 print(f"[c similarity loss | {cse_loss:.3f}]")
