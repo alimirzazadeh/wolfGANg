@@ -38,7 +38,7 @@ if __name__ == '__main__':
     print("Loading model ...")
     musegan = MuseGAN(**gan_args)
     print("Start training ...")
-    finalmodel = musegan.train(dataloader=dataloader, epochs=1)
+    finalmodel = musegan.train(dataloader=dataloader, epochs=args.epochs)
     print("Training finished.")
     finalmodel = finalmodel.eval()
 
