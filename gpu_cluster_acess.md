@@ -28,22 +28,22 @@ This document is a step by step guide on how to access the GPUs on the PACE CoC-
 - For the purpose of this project, you will be using the BATCH mode of operation
 - The following are the available job queues. You need to choose a job queue based on your requirement when scheduling the job.
 
-**COC-ICE	  Max CPU per Job	Max walltime	    Note**<br/>	
-coc-ice	      28	        2:00:00	      Higher priority<br/>	
-coc-ice-gpu	  28	        2:00:00	      For GPU jobs, higher priority<br/>	
-coc-ice-multi	128	        0:30:00	      For MPI jobs, lower priority<br/>	
-coc-ice-long	28	        8:00:00	      Lower priority<br/>	
-coc-ice-devel	128	        8:00:00	      Limited access, lowest priority<br/>	
-coc-ice-grade	128	        12:00:00	    Instructors/TAs only, highest priority<br/>	
+**COC-ICE    Max CPU per Job    Max walltime    Note**<br/>	
+coc-ice.      28                 2:00:00        Higher priority<br/>	
+coc-ice-gpu   28                 2:00:00        For GPU jobs, higher priority<br/>	
+coc-ice-multi 128.               0:30:00        For MPI jobs, lower priority<br/>	
+coc-ice-long  28                 8:00:00        Lower priority<br/>	
+coc-ice-devel 128                8:00:00        Limited access, lowest priority<br/>	
+coc-ice-grade 128                12:00:00       Instructors/TAs only, highest priority<br/>	
 
 - For our project, you will be using coc-ice-gpu<br/>
 - Creating a new job :<br/>
 
-  - Everything needs to be scripted. No user interaction once the job starts (things like press 'y' to continue are not allowed)\
-  - You need to write a .pbs script that contains resource requirements, environmental settings, and tasks\
-  - Once the .pbs file is ready submit it using **qsub <your_pbs_script.pbs>**\
-  - Error and output logs are printed to the files mentioned in your pbs script\
-  - Below is the pbs file that can be used to run our project on the GPUs :\
+  - Everything needs to be scripted. No user interaction once the job starts (things like press 'y' to continue are not allowed)
+  - You need to write a .pbs script that contains resource requirements, environmental settings, and tasks
+  - Once the .pbs file is ready submit it using **qsub <your_pbs_script.pbs>**
+  - Error and output logs are printed to the files mentioned in your pbs script
+  - Below is the pbs file that can be used to run our project on the GPUs :
 
 **START OF PBS SCRIPT**
   
@@ -58,7 +58,7 @@ coc-ice-grade	128	        12:00:00	    Instructors/TAs only, highest priority<br
                                         # computation starts here<br/>
 cd wolfGANg                             # change into the desired directory<br/>
 
-# Execution begins
+                                        #Execution begins<br/>
 echo "Started on `/bin/hostname`"       # prints name of compute node job was strted<br/>
 module load anaconda3/2019.10<br/>
 module load cuda/10.2<br/>
