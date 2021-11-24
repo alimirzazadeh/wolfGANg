@@ -28,13 +28,13 @@ This document is a step by step guide on how to access the GPUs on the PACE CoC-
 - For the purpose of this project, you will be using the BATCH mode of operation
 - The following are the available job queues. You need to choose a job queue based on your requirement when scheduling the job.
 
-**COC-ICE    Max CPU per Job    Max walltime    Note**<br/>	
-coc-ice.      28                 2:00:00        Higher priority<br/>	
-coc-ice-gpu   28                 2:00:00        For GPU jobs, higher priority<br/>	
-coc-ice-multi 128.               0:30:00        For MPI jobs, lower priority<br/>	
-coc-ice-long  28                 8:00:00        Lower priority<br/>	
-coc-ice-devel 128                8:00:00        Limited access, lowest priority<br/>	
-coc-ice-grade 128                12:00:00       Instructors/TAs only, highest priority<br/>	
+**COC-ICE     Max CPU per Job    Max walltime    Note**<br/>	
+coc-ice.       28                 2:00:00        Higher priority<br/>	
+coc-ice-gpu    28                 2:00:00        For GPU jobs, higher priority<br/>	
+coc-ice-multi  128                0:30:00        For MPI jobs, lower priority<br/>	
+coc-ice-long   28                 8:00:00        Lower priority<br/>	
+coc-ice-devel  128                8:00:00        Limited access, lowest priority<br/>	
+coc-ice-grade  128                12:00:00       Instructors/TAs only, highest priority<br/>
 
 - For our project, you will be using coc-ice-gpu<br/>
 - Creating a new job :<br/>
@@ -48,7 +48,7 @@ coc-ice-grade 128                12:00:00       Instructors/TAs only, highest pr
 **START OF PBS SCRIPT**
   
 #PBS -N trainingrun                     # name of job is trainingrun<br/>
-#PBS -A GT-<username>                   # account to which job is charged, ex: GT-gburdell3<br/>
+#PBS -A GT-\<username\>                   # account to which job is charged, ex: GT-gburdell3<br/>
 #PBS -l nodes=1:ppn=10:gpus=3           # resources allocated, 1 node 10 processors per node and 3 GPUs<br/>
 #PBS -l pmem=5gb                        # memory per core<br/>
 #PBS -l walltime=20:00                  # job will run at most 20 min<br/>
