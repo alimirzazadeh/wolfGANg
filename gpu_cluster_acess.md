@@ -14,8 +14,8 @@ This document is a step by step guide on how to access the GPUs on the PACE CoC-
   - module spider: Lists all software and its available versions on cluster
   - module avail: Lists all available modules that can be loaded with current environment
   - module list: Displays all the modules that are currently loaded
-  - module load <module name>: Loads a module to the environment
-  - module rm <module name>: Removes a module from the environment
+  - module load \<module name\>: Loads a module to the environment
+  - module rm \<module name\>: Removes a module from the environment
   - module purge: Removes all loaded modules
 - Once you load the anaconda module, you can create a conda environment. For our project the following libraries need to be installed in the environment:
   - Pypianoroll
