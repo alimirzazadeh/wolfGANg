@@ -10,6 +10,7 @@ from musegan import MuseGAN
 from data.utils import MidiDataset
 from ipdb import set_trace as bp
 from data.utils import postProcess
+from inspirational_generation import InspirationalGeneration
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'top', description='Train MusaGAN.')
@@ -38,21 +39,31 @@ if __name__ == '__main__':
     print("Loading model ...")
     musegan = MuseGAN(**gan_args)
     print("Start training ...")
-    finalmodel = musegan.train(dataloader=dataloader, epochs=args.epochs)
+    finalgen, finalcritic = musegan.train(dataloader=dataloader, epochs=args.epochs)
     print("Training finished.")
-    finalmodel = finalmodel.eval()
+    finalgen = finalgen.eval()
     batch_size = 1
 
 
     # generate MIDI files components in a for loop
-    for i in range(3):
-        cords = torch.randn(batch_size, 32).to(device)
-        style = torch.randn(batch_size, 32).to(device)
-        melody = torch.randn(batch_size, 4, 32).to(device)
-        groove = torch.randn(batch_size, 4, 32).to(device)
-        fake = finalmodel(cords, style, melody, groove)
-        bp()
-        preds = fake.cpu().detach().numpy()
-        music_data = postProcess(preds)
-        filename = 'myexample' + str(i) + '.midi'
-        music_data.write('midi', fp=filename)
+
+    generating = False
+
+    if generating:
+        for i in range(3):
+            cords = torch.randn(batch_size, 32).to(device)
+            style = torch.randn(batch_size, 32).to(device)
+            melody = torch.randn(batch_size, 4, 32).to(device)
+            groove = torch.randn(batch_size, 4, 32).to(device)
+            fake = finalgen(cords, style, melody, groove)
+            # bp()
+            preds = fake.cpu().detach().numpy()
+            music_data = postProcess(preds)
+            filename = 'myexample' + str(i) + '.midi'
+            music_data.write('midi', fp=filename)
+
+
+    ##Now for inspirational generation
+    ig = InspirationalGeneration(finalgen, finalcritic)
+
+    ig.inspirational_generation("output_midi/myexample0.midi")
