@@ -53,24 +53,24 @@ coc-ice-grade  128                12:00:00       Instructors/TAs only, highest p
 
 ```
   
-#PBS -N trainingrun                     # name of job is trainingrun<br/>
-#PBS -A GT-\<username\>                   # account to which job is charged, ex: GT-gburdell3<br/>
-#PBS -l nodes=1:ppn=10:gpus=3           # resources allocated, 1 node 10 processors per node and 3 GPUs<br/>
-#PBS -l pmem=5gb                        # memory per core<br/>
-#PBS -l walltime=20:00                  # job will run at most 20 min<br/>
-#PBS -q coc-ice-gpu                     # job is submitted to inferno queue<br/>
-#PBS -j oe                              # output and error is combined into the same file<br/>
-#PBS -o outputlog.out                   # output file is named outputlog<br/>
-                                        # computation starts here<br/>
-cd wolfGANg                             # change into the desired directory<br/>
+#PBS -N trainingrun                     # name of job is trainingrun
+#PBS -A GT-\<username\>                 # account to which job is charged, ex: GT-gburdell3
+#PBS -l nodes=1:ppn=10:gpus=3           # resources allocated, 1 node 10 processors per node and 3 GPUs
+#PBS -l pmem=5gb                        # memory per core
+#PBS -l walltime=20:00                  # job will run at most 20 min
+#PBS -q coc-ice-gpu                     # job is submitted to inferno queue
+#PBS -j oe                              # output and error is combined into the same file
+#PBS -o outputlog.out                   # output file is named outputlog
+                                        # computation starts here
+cd wolfGANg                             # change into the desired directory
 
-                                        #Execution begins<br/>
-echo "Started on `/bin/hostname`"       # prints name of compute node job was strted<br/>
-module load anaconda3/2019.10<br/>
-module load cuda/10.2<br/>
-module load pytorch/1.4<br/>
-conda activate <virtual_env>            #Activate the created environment<br/>
-python train.py<br/>
+                                        #Execution begins
+echo "Started on `/bin/hostname`"       # prints name of compute node job was strted
+module load anaconda3/2019.10
+module load cuda/10.2
+module load pytorch/1.4
+conda activate <virtual_env>            #Activate the created environment
+python train.py
   
 ```
   
