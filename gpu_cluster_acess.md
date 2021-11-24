@@ -4,7 +4,7 @@ This document is a step by step guide on how to access the GPUs on the PACE CoC-
 - Make sure you are connected to either eduroam or Georgia Tech VPN (link for VPN : https://gatech.service-now.com/home?id=kb_article_view&sysparm_article=KB0026837).<br/>
 
 **STEP 2:**
-- ssh into the head node of the cluster using the command : ssh <username>@coc-ice.pace.gatech.edu
+- ssh into the head node of the cluster using the command : ssh \<username\>@coc-ice.pace.gatech.edu
 - Enter the password to your Georgia Tech account when prompted
 - Each user is allocated a storage quota of 15GB (You can request for extra storage based on need). Check your storage quota using pace-quota.<br/>
 
