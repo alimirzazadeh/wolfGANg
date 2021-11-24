@@ -1,12 +1,12 @@
 This document is a step by step guide on how to access the GPUs on the PACE CoC-ICE (College of Computing Instructional Cluster Environment).
 
 **STEP 1:**
-- Make sure you are connected to either eduroam or Georgia Tech VPN (link for VPN : https://gatech.service-now.com/home?id=kb_article_view&sysparm_article=KB0026837).\
+- Make sure you are connected to either eduroam or Georgia Tech VPN (link for VPN : https://gatech.service-now.com/home?id=kb_article_view&sysparm_article=KB0026837).<br/>
 
 **STEP 2:**
 - ssh into the head node of the cluster using the command : ssh <username>@coc-ice.pace.gatech.edu
 - Enter the password to your Georgia Tech account when prompted
-- Each user is allocated a storage quota of 15GB (You can request for extra storage based on need). Check your storage quota using pace-quota.\
+- Each user is allocated a storage quota of 15GB (You can request for extra storage based on need). Check your storage quota using pace-quota.<br/>
 
 **STEP 3:**
 - Once you're in your head node, you can copy data to/from coc-ice using scp or rsync, check out the various modules that are pre-installed in the server, etc.
@@ -28,16 +28,16 @@ This document is a step by step guide on how to access the GPUs on the PACE CoC-
 - For the purpose of this project, you will be using the BATCH mode of operation
 - The following are the available job queues. You need to choose a job queue based on your requirement when scheduling the job.
 
-**COC-ICE	  Max CPU per Job	Max walltime	    Note**\	
-coc-ice	      28	        2:00:00	      Higher priority\	
-coc-ice-gpu	  28	        2:00:00	      For GPU jobs, higher priority\	
-coc-ice-multi	128	        0:30:00	      For MPI jobs, lower priority\	
-coc-ice-long	28	        8:00:00	      Lower priority\	
-coc-ice-devel	128	        8:00:00	      Limited access, lowest priority\	
-coc-ice-grade	128	        12:00:00	    Instructors/TAs only, highest priority\	
+**COC-ICE	  Max CPU per Job	Max walltime	    Note**<br/>	
+coc-ice	      28	        2:00:00	      Higher priority<br/>	
+coc-ice-gpu	  28	        2:00:00	      For GPU jobs, higher priority<br/>	
+coc-ice-multi	128	        0:30:00	      For MPI jobs, lower priority<br/>	
+coc-ice-long	28	        8:00:00	      Lower priority<br/>	
+coc-ice-devel	128	        8:00:00	      Limited access, lowest priority<br/>	
+coc-ice-grade	128	        12:00:00	    Instructors/TAs only, highest priority<br/>	
 
-- For our project, you will be using coc-ice-gpu
-- Creating a new job :
+- For our project, you will be using coc-ice-gpu<br/>
+- Creating a new job :<br/>
 
   - Everything needs to be scripted. No user interaction once the job starts (things like press 'y' to continue are not allowed)\
   - You need to write a .pbs script that contains resource requirements, environmental settings, and tasks\
@@ -47,24 +47,24 @@ coc-ice-grade	128	        12:00:00	    Instructors/TAs only, highest priority\
 
 **START OF PBS SCRIPT**
   
-#PBS -N trainingrun                     # name of job is trainingrun\
-#PBS -A GT-<username>                   # account to which job is charged, ex: GT-gburdell3\
-#PBS -l nodes=1:ppn=10:gpus=3           # resources allocated, 1 node 10 processors per node and 3 GPUs\
-#PBS -l pmem=5gb                        # memory per core\
-#PBS -l walltime=20:00                  # job will run at most 20 min\
-#PBS -q coc-ice-gpu                     # job is submitted to inferno queue\
-#PBS -j oe                              # output and error is combined into the same file\
-#PBS -o outputlog.out                   # output file is named outputlog\
-                                        # computation starts here\
-cd wolfGANg                             # change into the desired directory\
+#PBS -N trainingrun                     # name of job is trainingrun<br/>
+#PBS -A GT-<username>                   # account to which job is charged, ex: GT-gburdell3<br/>
+#PBS -l nodes=1:ppn=10:gpus=3           # resources allocated, 1 node 10 processors per node and 3 GPUs<br/>
+#PBS -l pmem=5gb                        # memory per core<br/>
+#PBS -l walltime=20:00                  # job will run at most 20 min<br/>
+#PBS -q coc-ice-gpu                     # job is submitted to inferno queue<br/>
+#PBS -j oe                              # output and error is combined into the same file<br/>
+#PBS -o outputlog.out                   # output file is named outputlog<br/>
+                                        # computation starts here<br/>
+cd wolfGANg                             # change into the desired directory<br/>
 
 # Execution begins
-echo "Started on `/bin/hostname`"       # prints name of compute node job was strted\
-module load anaconda3/2019.10\
-module load cuda/10.2\
-module load pytorch/1.4\
-conda activate <virtual_env>            #Activate the created environment\
-python train.py\
+echo "Started on `/bin/hostname`"       # prints name of compute node job was strted<br/>
+module load anaconda3/2019.10<br/>
+module load cuda/10.2<br/>
+module load pytorch/1.4<br/>
+conda activate <virtual_env>            #Activate the created environment<br/>
+python train.py<br/>
   
 **END OF PBS SCRIPT**
 
