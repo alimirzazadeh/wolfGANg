@@ -265,7 +265,7 @@ class InspirationalGeneration():
 
             #     if not randomSearch:
             #         loss.sum(dim=0).backward()
-
+            bp()
             print("Total Sum: ", sumLoss, " with gradient: ", torch.sum(varNoise.grad))
             if nevergrad:
                 for i in range(nImages):
