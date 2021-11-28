@@ -65,8 +65,8 @@ class InspirationalGeneration():
     def encoder(self, output):
         # aa = torch.tensor(output, requires_grad=True)
         ab = torch.max(output, axis=-1, keepdim=True)
-        ab = ab.values.repeat(1,1,1,1,aa.shape[-1])
-        ac = aa - ab
+        ab = ab.values.repeat(1,1,1,1,output.shape[-1])
+        ac = output - ab
         ae = torch.floor(ac) + 1
         bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
         fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
