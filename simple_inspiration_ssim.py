@@ -205,8 +205,7 @@ class InspirationalGeneration():
             optimizers = []
             for i in range(nImages):
                 optimizers += [optimizerlib.registry[nevergrad](
-                    dimension=model.config.noiseVectorDim +
-                    model.config.categoryVectorDim,
+                    dimension=320,
                     budget=nSteps)]
 
         def resetVar(newVal):
@@ -221,13 +220,12 @@ class InspirationalGeneration():
         for iter in range(nSteps):
 
             optimNoise.zero_grad()
-            model.netG.zero_grad()
-            model.netD.zero_grad()
+            self.generator.zero_grad()
+            self.critic.zero_grad()
 
             if randomSearch:
                 varNoise = torch.randn((nImages,
-                                        model.config.noiseVectorDim +
-                                        model.config.categoryVectorDim),
+                                        320),
                                        device=self.device)
                 if nevergrad:
                     inps = []
@@ -240,7 +238,8 @@ class InspirationalGeneration():
                     varNoise.requires_grad = True
                     varNoise.to(self.device)
 
-            noiseOut = model.netG(varNoise)
+            cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
+            noiseOut = self.generator(cords, style, melody, groove)
             sumLoss = torch.zeros(nImages, device=self.device)
 
             loss = (((varNoise**2).mean(dim=1) - 1)**2)
@@ -260,7 +259,7 @@ class InspirationalGeneration():
 
             if lambdaD > 0:
 
-                loss = -lambdaD * model.netD(noiseOut)[:, 0]
+                loss = -lambdaD * self.critic(noiseOut)[:, 0]
                 sumLoss += loss
 
                 if not randomSearch:
@@ -287,8 +286,9 @@ class InspirationalGeneration():
             if iter % epochStep == (epochStep - 1):
                 lr *= gradientDecay
                 resetVar(optimalVector)
-
-        output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
+        cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
+        output = self.generator(cords, style, melody, groove).detach()
+        # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
 
 
         print("optimal losses : " + formatCommand.format(
@@ -301,7 +301,6 @@ class InspirationalGeneration():
         featureExtractors =  None #pytorch_ssim.SSIM()
         imgTransforms = self.encoder
         fullInputs = torch.tensor(midiToNumpy(midiFile)) #_____(midiFile)
-        model = {""}
         img, outVectors, loss = self.gradientDescentOnInput(fullInputs,
                                                        featureExtractors,
                                                        imgTransforms,
