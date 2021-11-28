@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_argument("--c_lr", type=float, default=0.001, help="Critic learning rate.")
     args = parser.parse_args()
     # parameters of musegan
-    device = torch.device('cpu')#'cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print("Using device: ", 'cuda:0' if torch.cuda.is_available() else 'cpu')
     gan_args = args.__dict__.copy()
     gan_args.pop('epochs', None)
