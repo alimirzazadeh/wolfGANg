@@ -19,6 +19,10 @@ class InspirationalGeneration():
     def __init__(self, generator, critic):
         self.generator = generator
         self.critic = critic
+        for param in self.generator.parameters():
+            param.requires_grad = False
+        for param in self.critic.parameters():
+            param.requires_grad = False
         self.device = 'cuda:0'
         self.ssim = pytorch_ssim.SSIM()
 
@@ -247,6 +251,7 @@ class InspirationalGeneration():
             cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
             noiseOut = self.generator(cords, style, melody, groove)
             sumLoss = torch.zeros(nImages, device=self.device)
+            sumLoss.requires_grad = True
 
             # loss = (((varNoise**2).mean(dim=1) - 1)**2)
             # sumLoss += loss.view(nImages)
@@ -262,7 +267,7 @@ class InspirationalGeneration():
 
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
-                    # bp()
+                    bp()
                     # output = torch.autograd.grad(loss,varNoise,create_graph=True)
                     loss.sum().backward(retain_graph=retainGraph)
 
@@ -283,7 +288,7 @@ class InspirationalGeneration():
                 for i in range(nImages):
                     optimizers[i].tell(inps[i], float(sumLoss[i]))
             elif not randomSearch:
-                bp()
+                # bp()
                 optimNoise.step()
 
             if optimalLoss is None:
