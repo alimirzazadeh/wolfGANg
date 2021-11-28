@@ -69,7 +69,7 @@ class InspirationalGeneration():
         ae = torch.floor(ac) + 1
         bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
         fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
-        bp()
+        # bp()
         return fin
 
 
@@ -142,7 +142,7 @@ class InspirationalGeneration():
         print("Running for %d setps" % nSteps)
 
         # Detect categories
-        bp()
+        # bp()
         batch_size = input.size(0)
         varNoise = torch.randn((batch_size,
                                 10 * 32),
@@ -249,7 +249,7 @@ class InspirationalGeneration():
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
-                bp()
+                # bp()
                 loss = weights[i] * diff
                 sumLoss += loss
 
@@ -265,6 +265,7 @@ class InspirationalGeneration():
                 if not randomSearch:
                     loss.sum(dim=0).backward()
 
+            print("Total Sum: ", sumLoss)
             if nevergrad:
                 for i in range(nImages):
                     optimizers[i].tell(inps[i], float(sumLoss[i]))
