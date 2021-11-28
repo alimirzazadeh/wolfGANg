@@ -297,8 +297,7 @@ class InspirationalGeneration():
                                                        featureExtractors,
                                                        imgTransforms,
                                                        randomSearch=False,
-                                                       nevergrad=None,
-                                                       outPathSave=outPathDescent)
+                                                       nevergrad=None)
         bp()
         pathVectors = basePath + "vector.pt"
         torch.save(outVectors, open(pathVectors, 'wb'))
