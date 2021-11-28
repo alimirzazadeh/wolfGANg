@@ -191,6 +191,7 @@ class InspirationalGeneration():
 
         #     if nevergrad is None:
         #         featureExtractors[i].train()
+            bp()
             featuresIn.append(self.reshaper(imageTransforms[i](input.to(self.device))))
 
         lr = 1
@@ -309,7 +310,7 @@ class InspirationalGeneration():
     def inspirational_generation(self, midiFile):
         featureExtractors =  None #pytorch_ssim.SSIM()
         imgTransforms = self.encoder
-        bp()
+        # bp()
         fullInputs = torch.tensor(midiToNumpy(midiFile)) #_____(midiFile)
         img, outVectors, loss = self.gradientDescentOnInput(fullInputs,
                                                        featureExtractors,
