@@ -243,9 +243,9 @@ class InspirationalGeneration():
             noiseOut = self.generator(cords, style, melody, groove)
             sumLoss = torch.zeros(nImages, device=self.device)
 
-            loss = (((varNoise**2).mean(dim=1) - 1)**2)
-            sumLoss += loss.view(nImages)
-            loss.sum(dim=0).backward(retain_graph=True)
+            # loss = (((varNoise**2).mean(dim=1) - 1)**2)
+            # sumLoss += loss.view(nImages)
+            # loss.sum(dim=0).backward(retain_graph=True)
 
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
@@ -258,15 +258,15 @@ class InspirationalGeneration():
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
                     loss.sum(dim=0).backward(retain_graph=retainGraph)
 
-            if lambdaD > 0:
+            # if lambdaD > 0:
 
-                loss = -lambdaD * self.critic(noiseOut)[:, 0]
-                sumLoss += loss
+            #     loss = -lambdaD * self.critic(noiseOut)[:, 0]
+            #     sumLoss += loss
 
-                if not randomSearch:
-                    loss.sum(dim=0).backward()
+            #     if not randomSearch:
+            #         loss.sum(dim=0).backward()
 
-            print("Total Sum: ", sumLoss, " with gradient: ", varNoise.grad)
+            print("Total Sum: ", sumLoss, " with gradient: ", torch.sum(varNoise.grad))
             if nevergrad:
                 for i in range(nImages):
                     optimizers[i].tell(inps[i], float(sumLoss[i]))
