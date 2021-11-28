@@ -218,7 +218,7 @@ class InspirationalGeneration():
         # String's format for loss output
         formatCommand = ' '.join(['{:>4}' for x in range(nImages)])
         for iter in range(nSteps):
-            bp()
+            # bp()
 
             optimNoise.zero_grad()
             self.generator.zero_grad()
@@ -285,9 +285,9 @@ class InspirationalGeneration():
 
 
 
-            if iter % epochStep == (epochStep - 1):
-                lr *= gradientDecay
-                resetVar(optimalVector)
+            # if iter % epochStep == (epochStep - 1):
+            #     lr *= gradientDecay
+            #     resetVar(optimalVector)
         cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
         output = self.generator(cords, style, melody, groove).detach()
         # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
