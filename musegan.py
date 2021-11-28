@@ -215,13 +215,14 @@ class MuseGAN():
 
 
     def train_step(self, real_image, n_iter):
-        cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss = 0, 0, 0, 0, 0
+        cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss, gob_loss, grb_loss = 0, 0, 0, 0, 0, 0, 0
         if self.running_avg_g is None:
             self.running_avg_g = copy_G_params(self.generator)
 
         batch_size = real_image.size(0)
         c_ratio = int(max(8-(n_iter/15.0), 1.0))
         g_ratio = int(min(1+(n_iter/15.0), 8))
+        o_ratio = g_ratio
         
         for _ in range(c_ratio):
             ### prepare data part
@@ -278,29 +279,32 @@ class MuseGAN():
 
             gb_loss += loss_g.item()/g_ratio
 
+        for _ in range(o_ratio):
         ### Mutual Information between c and c' Part
-        self.generator.zero_grad()
-        self.critic.zero_grad()
+            self.generator.zero_grad()
+            self.critic.zero_grad()
 
-        z, c, c_idx = self.sample_z_and_c(batch_size, n_iter)
-        g_img = self.generator(c=c, z=z)        
-        pred_g, pred_c_params = self.critic(g_img)
-        # print("c, c_pred: ", c.shape, pred_c_params.shape)
-        if self.prob_c:
-            loss_g_recon_c = self.neg_log_density(c, pred_c_params).mean()
-        else:
-            loss_g_recon_c = F.l1_loss(pred_c_params, c)
+            z, c, c_idx = self.sample_z_and_c(batch_size, n_iter)
+            g_img = self.generator(c=c, z=z)        
+            pred_g, pred_c_params = self.critic(g_img)
+            # print("c, c_pred: ", c.shape, pred_c_params.shape)
+            if self.prob_c:
+                loss_g_recon_c = self.neg_log_density(c, pred_c_params).mean()
+            else:
+                loss_g_recon_c = F.l1_loss(pred_c_params, c)
 
-        loss_g_onehot = torch.Tensor([0]).to(self.device)
-        # if n_iter%2==0 and self.one_hot:
-        #     print("cp, c_idx: ", pred_c_params[:,:self.c_dim].shape, c_idx.shape)
-        if n_iter%4==0 and self.one_hot:
-            loss_g_onehot = 0.2*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
-        elif n_iter%2==0 and self.one_hot:
-            loss_g_onehot = 0.8*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
-           
-        loss_info = self.recon_weight * loss_g_recon_c + self.onehot_weight * loss_g_onehot
-        loss_info.backward()
+            loss_g_onehot = torch.Tensor([0]).to(self.device)
+            # if n_iter%2==0 and self.one_hot:
+            #     print("cp, c_idx: ", pred_c_params[:,:self.c_dim].shape, c_idx.shape)
+            if n_iter%4==0 and self.one_hot:
+                loss_g_onehot = 0.2*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
+            elif n_iter%2==0 and self.one_hot:
+                loss_g_onehot = 0.8*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
+            
+            loss_info = self.recon_weight * loss_g_recon_c + self.onehot_weight * loss_g_onehot
+            loss_info.backward()
+            gob_loss += loss_g_onehot.item()/o_ratio
+            grb_loss += loss_g_recon_c.item()/o_ratio
 
         # TODO look into
         self.opt_info.step()
@@ -309,7 +313,7 @@ class MuseGAN():
             avg_p.mul_(0.999).add_(0.001, p.data)
 
         # print("losses: ", cfb_loss, crb_loss, cpb_loss, cb_loss, loss_g.item(), loss_g_onehot.item(), loss_g_recon_c.item())
-        return cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss, loss_g_onehot.item(), loss_g_recon_c.item()
+        return cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss, gob_loss, grb_loss
     
 
 

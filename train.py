@@ -25,6 +25,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # parameters of musegan
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print("Using device: ", 'cuda:0' if torch.cuda.is_available() else 'cpu')
     gan_args = args.__dict__.copy()
     gan_args.pop('epochs', None)
     gan_args.pop('batch_size', None)
@@ -42,8 +43,7 @@ if __name__ == '__main__':
     print("Training finished.")
     finalmodel = finalmodel.eval()
 
-    batch_size = 1
-    z = torch.randn(batch_size, 10, 32).to(device)
+    z = torch.randn(args.batch_size, 10, 32).to(device)
     for i in range(10):
         c = [float(0)]*10
         c[i] = float(1)
@@ -60,6 +60,8 @@ if __name__ == '__main__':
     # bp()
     preds = fake.cpu().detach().numpy()
     music_data = postProcess(preds)
+    print(music_data.type, music_data.size)
+    print(music_data)
     filename = f'myexample_.midi'
     music_data.write('midi', fp=filename)
     
