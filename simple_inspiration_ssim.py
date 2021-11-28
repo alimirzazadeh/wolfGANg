@@ -266,7 +266,7 @@ class InspirationalGeneration():
                 if not randomSearch:
                     loss.sum(dim=0).backward()
 
-            print("Total Sum: ", sumLoss)
+            print("Total Sum: ", sumLoss, " with gradient: ", sumLoss.grad)
             if nevergrad:
                 for i in range(nImages):
                     optimizers[i].tell(inps[i], float(sumLoss[i]))
