@@ -12,6 +12,7 @@ import torch.optim as optim
 from ipdb import set_trace as bp
 import libs.pytorch_ssim as pytorch_ssim
 from libs.midi2numpy import midiToNumpy
+from torch.autograd import Function
 
 class InspirationalGeneration():
 
@@ -260,6 +261,8 @@ class InspirationalGeneration():
 
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
+                    bp()
+                    output = torch.autograd.grad(loss,var_noise,create_graph=True)
                     loss.sum(dim=0).backward(retain_graph=retainGraph)
 
             # if lambdaD > 0:
