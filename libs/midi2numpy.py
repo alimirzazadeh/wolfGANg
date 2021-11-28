@@ -58,8 +58,8 @@ def stream2chordarr(s, note_size=NOTE_SIZE, sample_freq=SAMPLE_FREQ, max_note_du
     return final_np
 def midiToNumpy(filepath):
     arr = stream2chordarr(file2stream(filepath))
-    arr[arr > 0] = 1
-    arr[arr < 0] = 0
+    # arr[arr > 0] = 1
+    # arr[arr < 0] = 0
     return arr
 
 
