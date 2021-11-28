@@ -57,7 +57,10 @@ def stream2chordarr(s, note_size=NOTE_SIZE, sample_freq=SAMPLE_FREQ, max_note_du
     final_np = np.expand_dims(score_arr_reshaped, axis=0)
     return final_np
 def midiToNumpy(filepath):
-    return stream2chordarr(file2stream(filepath))
+    arr = stream2chordarr(file2stream(filepath))
+    arr[arr > 0] = 1
+    arr[arr < 0] = 0
+    return arr
 
 
 # from music21 import midi
