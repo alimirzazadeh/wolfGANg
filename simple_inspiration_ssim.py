@@ -250,8 +250,8 @@ class InspirationalGeneration():
 
             cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
             noiseOut = self.generator(cords, style, melody, groove)
-            sumLoss = torch.zeros(nImages, device=self.device)
-            sumLoss.requires_grad = True
+            # sumLoss = torch.zeros(nImages, device=self.device)
+            # sumLoss.requires_grad = True
 
             # loss = (((varNoise**2).mean(dim=1) - 1)**2)
             # sumLoss += loss.view(nImages)
@@ -263,7 +263,7 @@ class InspirationalGeneration():
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
                 loss = weights[i] * diff
-                sumLoss += loss
+                sumLoss = loss
 
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
