@@ -224,20 +224,20 @@ class InspirationalGeneration():
             self.generator.zero_grad()
             self.critic.zero_grad()
 
-            if randomSearch:
-                varNoise = torch.randn((nImages,
-                                        320),
-                                       device=self.device)
-                if nevergrad:
-                    inps = []
-                    for i in range(nImages):
-                        inps += [optimizers[i].ask()]
-                        npinps = np.array(inps)
+            # if randomSearch:
+            #     varNoise = torch.randn((nImages,
+            #                             320),
+            #                            device=self.device)
+            #     if nevergrad:
+            #         inps = []
+            #         for i in range(nImages):
+            #             inps += [optimizers[i].ask()]
+            #             npinps = np.array(inps)
 
-                    varNoise = torch.tensor(
-                        npinps, dtype=torch.float32, device=self.device)
-                    varNoise.requires_grad = True
-                    varNoise.to(self.device)
+            #         varNoise = torch.tensor(
+            #             npinps, dtype=torch.float32, device=self.device)
+            #         varNoise.requires_grad = True
+            #         varNoise.to(self.device)
 
             cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
             noiseOut = self.generator(cords, style, melody, groove)
@@ -249,6 +249,7 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
+                bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
                 loss = weights[i] * diff
