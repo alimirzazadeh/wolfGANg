@@ -279,6 +279,7 @@ class InspirationalGeneration():
                 for i in range(nImages):
                     optimizers[i].tell(inps[i], float(sumLoss[i]))
             elif not randomSearch:
+                bp()
                 optimNoise.step()
 
             if optimalLoss is None:
