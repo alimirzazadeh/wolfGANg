@@ -286,7 +286,7 @@ class InspirationalGeneration():
         return output, optimalVector, optimalLoss
 
 
-    def inspiration_generation(self, midiFile):
+    def inspirational_generation(self, midiFile):
         generator = self.generator
         discriminator = self.critic
         featureExtractors =  None #pytorch_ssim.SSIM()
