@@ -63,8 +63,8 @@ class InspirationalGeneration():
 
 
     def encoder(self, output):
-        aa = torch.tensor(output, requires_grad=True)
-        ab = torch.max(aa, axis=-1, keepdim=True)
+        # aa = torch.tensor(output, requires_grad=True)
+        ab = torch.max(output, axis=-1, keepdim=True)
         ab = ab.values.repeat(1,1,1,1,aa.shape[-1])
         ac = aa - ab
         ae = torch.floor(ac) + 1
@@ -262,7 +262,7 @@ class InspirationalGeneration():
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
                     bp()
-                    output = torch.autograd.grad(loss,var_noise,create_graph=True)
+                    output = torch.autograd.grad(loss,varNoise,create_graph=True)
                     loss.sum(dim=0).backward(retain_graph=retainGraph)
 
             # if lambdaD > 0:
