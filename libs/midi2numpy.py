@@ -8,18 +8,21 @@ from ipdb import set_trace as bp
 BPB = 16 # beats per bar
 TIMESIG = f'{BPB}/4' # default time signature
 PIANO_RANGE = (0, 1000000)
-VALTSEP = -1 # separator value for numpy encoding
-VALTCONT = -2 # numpy value for TCONT - needed for compressing chord array
+VALTSEP = 0 # separator value for numpy encoding
+VALTCONT = 1 # numpy value for TCONT - needed for compressing chord array
 
 SAMPLE_FREQ = 4
 NOTE_SIZE = 84
 DUR_SIZE = (10*BPB*SAMPLE_FREQ)+1 # Max length - 8 bars. Or 16 beats/quarternotes
 MAX_NOTE_DUR = (8*BPB*SAMPLE_FREQ)
 
+
+## fp is the name of the midifile(with path)
+
 def file2stream(fp):
-	
-	if isinstance(fp, music21.midi.MidiFile): return music21.midi.translate.midiFileToStream(fp)
-	return music21.converter.parse(fp)
+    
+    if isinstance(fp, music21.midi.MidiFile): return music21.midi.translate.midiFileToStream(fp)
+    return music21.converter.parse(fp)
 
 def stream2chordarr(s, note_size=NOTE_SIZE, sample_freq=SAMPLE_FREQ, max_note_dur=MAX_NOTE_DUR):
     "Converts music21.Stream to 1-hot numpy array"
@@ -57,10 +60,8 @@ def stream2chordarr(s, note_size=NOTE_SIZE, sample_freq=SAMPLE_FREQ, max_note_du
     final_np = np.expand_dims(score_arr_reshaped, axis=0)
     return final_np
 def midiToNumpy(filepath):
-    arr = stream2chordarr(file2stream(filepath))
-    # arr[arr > 0] = 1
-    # arr[arr < 0] = 0
-    return arr
+    return stream2chordarr(file2stream(filepath))
+
 
 
 # from music21 import midi

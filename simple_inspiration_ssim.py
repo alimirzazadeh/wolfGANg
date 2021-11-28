@@ -70,6 +70,8 @@ class InspirationalGeneration():
         bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
         fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
         # bp()
+        m = nn.ReLU()
+        fin = m(fin)
         return fin
 
 
