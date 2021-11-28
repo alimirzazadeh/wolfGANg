@@ -13,7 +13,7 @@ from data.utils import postProcess
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'top', description='Train MusaGAN.')
-    parser.add_argument("--epochs", type=int, default=50, help="Number of epochs.")
+    parser.add_argument("--epochs", type=int, default=100, help="Number of epochs.")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size.")
     parser.add_argument("--z_dimension", type=int, default=32, help="Z(noise)-space dimension.")
     parser.add_argument("--g_channels", type=int, default=1024, help="Generator hidden channels.")
@@ -60,8 +60,8 @@ if __name__ == '__main__':
     # bp()
     preds = fake.cpu().detach().numpy()
     music_data = postProcess(preds)
-    print(music_data.type, music_data.size)
-    print(music_data)
+    # print(music_data.type, music_data.size)
+    # print(music_data)
     filename = f'myexample_.midi'
     music_data.write('midi', fp=filename)
     
