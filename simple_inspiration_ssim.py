@@ -218,6 +218,7 @@ class InspirationalGeneration():
         # String's format for loss output
         formatCommand = ' '.join(['{:>4}' for x in range(nImages)])
         for iter in range(nSteps):
+            bp()
 
             optimNoise.zero_grad()
             self.generator.zero_grad()
