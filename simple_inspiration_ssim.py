@@ -44,6 +44,16 @@ class InspirationalGeneration():
     def reshaper(self, arr):
         return arr.unsqueeze(0).unsqueeze(0).float()
 
+    def splitInputToParts(self, noise_input, batch_size):
+        # noise_input = noise_input.view(-1)
+        cords = noise_input[:,:1 * 32].reshape((batch_size, 32))
+        style = noise_input[:,1 * 32 :2 * 32].reshape((batch_size, 32))
+        #bp()
+        melody = noise_input[:,2 * 32:6 * 32].reshape((batch_size, 4, 32))
+        groove = noise_input[:,6 * 32:10 * 32].reshape((batch_size, 4, 32))
+        return cords, style, melody, groove
+
+
     def midiWavTransform(self, midi_path):
         self.fs.midi_to_audio(midi_path, "temp.wav")
         return "temp.wav"
@@ -84,7 +94,6 @@ class InspirationalGeneration():
 
 
     def gradientDescentOnInput(self,
-                               model,
                                input,
                                featureExtractors,
                                imageTransforms,
@@ -133,16 +142,18 @@ class InspirationalGeneration():
         print("Running for %d setps" % nSteps)
 
         # Detect categories
-        varNoise = torch.randn((input.size(0),
-                                model.config.noiseVectorDim +
-                                model.config.categoryVectorDim),
+        bp()
+        batch_size = input.size(0)
+        varNoise = torch.randn((batch_size,
+                                10 * 32),
                                requires_grad=True, device=self.device)
 
         optimNoise = optim.Adam([varNoise],
                                 betas=[0., 0.99], lr=lr)
 
-        noiseOut = model.test(varNoise, getAvG=True, toCPU=False)
-
+        # noiseOut = model.test(varNoise, getAvG=True, toCPU=False)
+        cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
+        noiseOut = self.generator(cords, style, melody, groove)
         # if not isinstance(featureExtractors, list):
         #     featureExtractors = [featureExtractors]
         if not isinstance(imageTransforms, list):
@@ -287,13 +298,11 @@ class InspirationalGeneration():
 
 
     def inspirational_generation(self, midiFile):
-        generator = self.generator
-        discriminator = self.critic
         featureExtractors =  None #pytorch_ssim.SSIM()
         imgTransforms = self.encoder
         fullInputs = torch.tensor(midiToNumpy(midiFile)) #_____(midiFile)
-        img, outVectors, loss = self.gradientDescentOnInput(generator, discriminator,
-                                                       fullInputs,
+        model = {""}
+        img, outVectors, loss = self.gradientDescentOnInput(fullInputs,
                                                        featureExtractors,
                                                        imgTransforms,
                                                        randomSearch=False,
