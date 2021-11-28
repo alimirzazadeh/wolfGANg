@@ -295,11 +295,16 @@ class MuseGAN():
 
             loss_g_onehot = torch.Tensor([0]).to(self.device)
             # if n_iter%2==0 and self.one_hot:
-            #     print("cp, c_idx: ", pred_c_params[:,:self.c_dim].shape, c_idx.shape)
+            # #     print("cp, c_idx: ", pred_c_params[:,:self.c_dim].shape, c_idx.shape)
+            #     print()
+            #     print("loss_onehot")
+            #     print(self.c_dim)
+            #     print(pred_c_params.shape, pred_c_params[:,:self.c_dim].shape, c_idx.view(-1).shape)
             if n_iter%4==0 and self.one_hot:
                 loss_g_onehot = 0.2*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
             elif n_iter%2==0 and self.one_hot:
                 loss_g_onehot = 0.8*F.cross_entropy(pred_c_params[:,:self.c_dim], c_idx.view(-1))
+            # print("loss_onehot: ", loss_g_onehot)
             
             loss_info = self.recon_weight * loss_g_recon_c + self.onehot_weight * loss_g_onehot
             loss_info.backward()
@@ -335,72 +340,7 @@ class MuseGAN():
                 # real: real image batch
                 # print("real: ", real.shape)
                 cfb_loss, crb_loss, cpb_loss, cb_loss, gb_loss, ob_loss, csb_loss = self.train_step(real, epoch)
-                """
-                    real = real.to(device)
-                    # train Critic
-                    cb_loss=0
-                    cfb_loss, crb_loss, cpb_loss = 0, 0, 0
-                    for _ in range(5):
-                        # create random `noises`
-                        cords = torch.randn(batch_size, 32).to(device)
-                        style = torch.randn(batch_size, 32).to(device)
-                        melody = torch.randn(batch_size, 4, 32).to(device)
-                        groove = torch.randn(batch_size, 4, 32).to(device)
-                        # forward to generator
-                        self.c_optimizer.zero_grad()
-                        with torch.no_grad():
-                            fake = self.generator(cords, style, melody, groove).detach()
-
-
-                        # get critic's `fake` loss
-                        fake_pred, c_pred = self.critic(fake)
-                        fake_target = - torch.ones_like(fake_pred)
-                        fake_loss = self.c_criterion(fake_pred, fake_target)
-                        # get critic's `real` loss
-                        real_pred = self.critic(real)
-                        real_target = torch.ones_like(real_pred)
-                        real_loss = self.c_criterion(real_pred,  real_target)
-
-                        # mix `real` and `fake` melody
-                        realfake = self.alpha * real + (1. - self.alpha) * fake
-                        # get critic's penalty
-                        realfake_pred = self.critic(realfake)
-                        penalty = self.c_penalty(realfake, realfake_pred)
-                        # sum up losses
-                        closs = fake_loss + real_loss + 10 * penalty 
-                        # retain graph
-                        closs.backward(retain_graph=True)
-                        # update critic parameters
-                        self.c_optimizer.step()
-                        # devide by number of critic updates in the loop (5)
-                        cfb_loss += fake_loss.item()/5
-                        crb_loss += real_loss.item()/5
-                        cpb_loss += 10* penalty.item()/5
-                        cb_loss += closs.item()/5
-                        
-                    cfe_loss += cfb_loss/len(dataloader)
-                    cre_loss += crb_loss/len(dataloader)
-                    cpe_loss += cpb_loss/len(dataloader)
-                    ce_loss += cb_loss/len(dataloader)
-                    
-                    # train generator
-                    self.g_optimizer.zero_grad()
-                    # create random `noises`
-                    cords = torch.randn(batch_size, 32).to(device)
-                    style = torch.randn(batch_size, 32).to(device)
-                    melody = torch.randn(batch_size, 4, 32).to(device)
-                    groove = torch.randn(batch_size, 4, 32).to(device)
-                    # forward to generator
-                    fake = self.generator(cords, style, melody, groove)
-                    # forward to critic (to make prediction)
-                    fake_pred = self.critic(fake)
-                    # get generator loss (idea is to fool critic)
-                    gb_loss = self.g_criterion(fake_pred, torch.ones_like(fake_pred))
-                    gb_loss.backward()
-                    # update critic parameters
-                    self.g_optimizer.step()
-                    ge_loss += gb_loss.item()/len(dataloader)
-                """
+                
                 cfe_loss += cfb_loss/len(dataloader)
                 cre_loss += crb_loss/len(dataloader)
                 cpe_loss += cpb_loss/len(dataloader)
@@ -424,7 +364,7 @@ class MuseGAN():
             self.data['cs_loss'].append(cse_loss)
             self.data['o_loss'].append(oe_loss)
             # display losses
-            if (epoch+1)%display_epoch==0:
+            if (epoch)%display_epoch==0:
                 print("[Epoch %d/%d] [G loss: %.3f] [D loss: %.3f] ETA: %.3fs" % (epoch+1, epochs, ge_loss, ce_loss, tm))
                 print(f"[C loss | (fake: {cfe_loss:.3f}, real: {cre_loss:.3f}, penalty: {cpe_loss:.3f})]")
                 print(f"[c similarity loss | {cse_loss:.3f}]")

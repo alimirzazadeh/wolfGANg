@@ -13,7 +13,7 @@ from data.utils import postProcess
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'top', description='Train MusaGAN.')
-    parser.add_argument("--epochs", type=int, default=100, help="Number of epochs.")
+    parser.add_argument("--epochs", type=int, default=200, help="Number of epochs.")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size.")
     parser.add_argument("--z_dimension", type=int, default=32, help="Z(noise)-space dimension.")
     parser.add_argument("--g_channels", type=int, default=1024, help="Generator hidden channels.")
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_argument("--c_lr", type=float, default=0.001, help="Critic learning rate.")
     args = parser.parse_args()
     # parameters of musegan
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')#'cuda:0' if torch.cuda.is_available() else 'cpu')
     print("Using device: ", 'cuda:0' if torch.cuda.is_available() else 'cpu')
     gan_args = args.__dict__.copy()
     gan_args.pop('epochs', None)
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     print("Loading model ...")
     musegan = MuseGAN(**gan_args)
     print("Start training ...")
-    finalmodel = musegan.train(dataloader=dataloader, epochs=args.epochs)
+    finalmodel = musegan.train(dataloader=dataloader, batch_size=args.batch_size, epochs=args.epochs)
     print("Training finished.")
     finalmodel = finalmodel.eval()
 
