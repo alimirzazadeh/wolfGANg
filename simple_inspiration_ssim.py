@@ -192,8 +192,9 @@ class InspirationalGeneration():
 
         #     if nevergrad is None:
         #         featureExtractors[i].train()
-            bp()
+            # bp()
             featuresIn.append(self.reshaper(imageTransforms[i](input.to(self.device))))
+            featuresIn[i].requires_grad = False
 
         lr = 1
 
@@ -253,7 +254,7 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
-                bp()
+                # bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
                 loss = weights[i] * diff
@@ -261,9 +262,9 @@ class InspirationalGeneration():
 
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
-                    bp()
-                    output = torch.autograd.grad(loss,varNoise,create_graph=True)
-                    loss.sum(dim=0).backward(retain_graph=retainGraph)
+                    # bp()
+                    # output = torch.autograd.grad(loss,varNoise,create_graph=True)
+                    loss.sum().backward(retain_graph=retainGraph)
 
             # if lambdaD > 0:
 
