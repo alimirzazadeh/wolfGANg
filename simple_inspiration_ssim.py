@@ -259,9 +259,15 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 bp()
-                for row in range(noiseOut.shape[-1]):
-                    noiseOut[:,:,:,:,row] = torch.clamp(noiseOut[:,:,:,:,row],min=0,max=1)
-                noiseOut2 = noiseOut.view(noiseOut.shape[1], noiseOut.shape[2]*noiseOut.shape[3], noiseOut.shape[4])
+                
+                # for instru in range(noiseOut.shape[1]):
+                #     for sstep in range(noiseOut.shape[2]):
+                #         for bbar in range(noiseOut.shape[3]):
+                #             noiseOut[:,instru,sstep,bbar,:] = torch.clamp(noiseOut[:,instru,sstep,bbar,:],min=0,max=1)
+                # noiseOut1 = torch.log(noiseOut)
+                m = nn.Softmax(dim=-1)
+                noiseOut1 = m(noiseOut)
+                noiseOut2 = noiseOut1.view(noiseOut1.shape[1], noiseOut1.shape[2]*noiseOut1.shape[3], noiseOut1.shape[4])
                 noiseOut3 = noiseOut2.view(noiseOut2.shape[1],noiseOut2.shape[0] * noiseOut2.shape[2])
                 featureOut = self.reshaper(noiseOut3)
                 # featureOut = self.reshaper(imageTransforms[i](noiseOut))
