@@ -287,7 +287,7 @@ class InspirationalGeneration():
                 sumGrad = torch.sum(varNoise.grad)
             except:
                 sumGrad = 0
-            self.lossTracker.append(sumLoss)
+            self.lossTracker.append(sumLoss.cpu().detach().numpy())
             print("Total Sum: ", sumLoss, " with gradient: ", sumGrad)
             if nevergrad:
                 for i in range(nImages):
@@ -308,14 +308,14 @@ class InspirationalGeneration():
 
 
 
-            # if iter % epochStep == (epochStep - 1):
-            #     lr *= gradientDecay
-            #     resetVar(optimalVector)
+            if iter % epochStep == (epochStep - 1):
+                lr *= gradientDecay
+                resetVar(optimalVector)
         cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
         output = self.generator(cords, style, melody, groove).detach()
         # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
 
-        bp()
+        # bp()
         print("optimal losses : " + formatCommand.format(
             *"{:10.6f}".format(optimalLoss.item())))
         return output, optimalVector, optimalLoss
