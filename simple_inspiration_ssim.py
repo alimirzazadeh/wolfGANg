@@ -332,6 +332,10 @@ class InspirationalGeneration():
                                                        randomSearch=False,
                                                        nevergrad=None)
         bp()
+        import matplotlib.pyplot as plt
+        plt.plot(self.lossTracker)
+        plt.savefig("/home/users/alimirz1/lossTracker.png")
+        bp()
         pathVectors = basePath + "vector.pt"
         torch.save(outVectors, open(pathVectors, 'wb'))
 
