@@ -72,7 +72,8 @@ if __name__ == '__main__':
     filename = f'myexample_.midi'
     music_data.write('midi', fp=filename)
     
-
+    bp() 
+    
     ig = InspirationalGeneration(finalgen, finalcritic)
 
     ig.inspirational_generation("output_midi/myexample0.midi")
