@@ -13,6 +13,7 @@ from ipdb import set_trace as bp
 import libs.pytorch_ssim as pytorch_ssim
 from libs.midi2numpy import midiToNumpy
 from torch.autograd import Function
+from data.utils import postProcess
 
 class InspirationalGeneration():
 
