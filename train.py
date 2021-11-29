@@ -10,7 +10,7 @@ from musegan import MuseGAN
 from data.utils import MidiDataset
 from ipdb import set_trace as bp
 from data.utils import postProcess
-from inspirational_generation import InspirationalGeneration
+from simple_inspiration_ssim import InspirationalGeneration
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog = 'top', description='Train MusaGAN.')
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     filename = f'myexample_.midi'
     music_data.write('midi', fp=filename)
     
-    bp() 
-    
+    # bp() 
+
     ig = InspirationalGeneration(finalgen, finalcritic)
 
     ig.inspirational_generation("output_midi/myexample0.midi")
