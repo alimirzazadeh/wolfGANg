@@ -69,14 +69,14 @@ class InspirationalGeneration():
     def encoder(self, output):
         # aa = torch.tensor(output, requires_grad=True)
         m = nn.Softmax(dim=-1)
-        noiseOut1 = m(output * 10000)
+        ae = m(output * 10000)
 
         # ab = torch.max(output, axis=-1, keepdim=True)
         # ab = ab.values.repeat(1,1,1,1,output.shape[-1])
         # ac = output - ab
         # ae = torch.floor(ac) + 1
-        # bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
-        # fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
+        bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
+        fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
         # # bp()
         # m = nn.ReLU()
         # fin = m(fin)
