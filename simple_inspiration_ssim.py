@@ -83,7 +83,10 @@ class InspirationalGeneration():
         # fin = m(fin)
         return fin
 
-
+    def saveAsMIDI(self, output, filepath):
+        preds = output.cpu().detach().numpy()
+        music_data = postProcess(preds)
+        music_data.write('midi', fp=filepath)
 
     def pil_loader(self, path):
 
@@ -165,6 +168,7 @@ class InspirationalGeneration():
         # noiseOut = model.test(varNoise, getAvG=True, toCPU=False)
         cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
         noiseOut = self.generator(cords, style, melody, groove)
+        self.saveAsMIDI(noiseOut,"/home/users/alimirz1/pre_inspiredOutput_001.midi")
         # if not isinstance(featureExtractors, list):
         #     featureExtractors = [featureExtractors]
         if not isinstance(imageTransforms, list):
@@ -313,6 +317,7 @@ class InspirationalGeneration():
                 resetVar(optimalVector)
         cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
         output = self.generator(cords, style, melody, groove).detach()
+        self.saveAsMIDI(output,"/home/users/alimirz1/inspiredOutput_001.midi")
         # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
 
         # bp()
@@ -331,7 +336,7 @@ class InspirationalGeneration():
                                                        imgTransforms,
                                                        randomSearch=False,
                                                        nevergrad=None)
-        bp()
+        # bp()
         import matplotlib.pyplot as plt
         plt.plot(self.lossTracker)
         plt.savefig("/home/users/alimirz1/lossTracker.png")
