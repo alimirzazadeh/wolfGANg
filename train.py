@@ -77,4 +77,4 @@ if __name__ == '__main__':
 
     ig = InspirationalGeneration(finalgen, finalcritic)
 
-    ig.inspirational_generation("output_midi/myexample0.midi")
+    ig.inspirational_generation("output_midi/myexample.midi")
