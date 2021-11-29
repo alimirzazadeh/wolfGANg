@@ -259,7 +259,7 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 bp()
-                for row in noiseOut.shape[-1]:
+                for row in range(noiseOut.shape[-1]):
                     noiseOut[:,:,:,:,row] = torch.clamp(noiseOut[:,:,:,:,row],min=0,max=1)
                 noiseOut2 = noiseOut.view(noiseOut.shape[1], noiseOut.shape[2]*noiseOut.shape[3], noiseOut.shape[4])
                 noiseOut3 = noiseOut2.view(noiseOut2.shape[1],noiseOut2.shape[0] * noiseOut2.shape[2])
