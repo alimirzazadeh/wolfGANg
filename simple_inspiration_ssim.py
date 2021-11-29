@@ -80,7 +80,7 @@ class InspirationalGeneration():
         # # bp()
         # m = nn.ReLU()
         # fin = m(fin)
-        return noiseOut1
+        return fin
 
 
 
