@@ -60,6 +60,11 @@ class InspirationalGeneration():
         groove = noise_input[:,6 * 32:10 * 32].reshape((batch_size, 4, 32))
         return cords, style, melody, groove
 
+    def splitInputToOOGANParts(self, noise_input, batch_size):
+        z_vector = noise_input[:,:-10].reshape((batch_size, 10, 32))
+        c_vector = noise_input[:,-10:].reshape((batch_size, 10))
+        return z_vector, c_vector
+
 
     def midiWavTransform(self, midi_path):
         self.fs.midi_to_audio(midi_path, "temp.wav")
@@ -160,15 +165,18 @@ class InspirationalGeneration():
         # bp()
         batch_size = input.size(0)
         varNoise = torch.randn((batch_size,
-                                10 * 32),
+                                10 * 33),
                                requires_grad=True, device=self.device)
 
         optimNoise = optim.Adam([varNoise],
                                 betas=[0., 0.99], lr=lr)
 
         # noiseOut = model.test(varNoise, getAvG=True, toCPU=False)
-        cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
-        noiseOut = self.generator(cords, style, melody, groove)
+        # cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
+        z_vector, c_vector = self.splitInputToOOGANParts(varNoise, batch_size)
+        
+
+        noiseOut = self.generator(c_vector, z_vector)
         self.saveAsMIDI(noiseOut,"/home/users/alimirz1/pre_inspiredOutput_001.midi")
         # if not isinstance(featureExtractors, list):
         #     featureExtractors = [featureExtractors]
@@ -256,9 +264,12 @@ class InspirationalGeneration():
             #             npinps, dtype=torch.float32, device=self.device)
             #         varNoise.requires_grad = True
             #         varNoise.to(self.device)
+            z_vector, c_vector = self.splitInputToOOGANParts(varNoise, batch_size)
+            
 
-            cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
-            noiseOut = self.generator(cords, style, melody, groove)
+            noiseOut = self.generator(c_vector, z_vector)
+            # cords, style, melody, groove = self.splitInputToParts(varNoise, batch_size)
+            # noiseOut = self.generator(cords, style, melody, groove)
             # sumLoss = torch.zeros(nImages, device=self.device)
             # sumLoss.requires_grad = True
 
@@ -316,8 +327,12 @@ class InspirationalGeneration():
             if iter % epochStep == (epochStep - 1):
                 lr *= gradientDecay
                 resetVar(optimalVector)
-        cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
-        output = self.generator(cords, style, melody, groove).detach()
+
+        z_vector, c_vector = self.splitInputToOOGANParts(optimalVector, batch_size)
+        noiseOut = self.generator(c_vector, z_vector).detach()
+
+        # cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
+        # output = self.generator(cords, style, melody, groove).detach()
         self.saveAsMIDI(output,"/home/users/alimirz1/inspiredOutput_001.midi")
         # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
 
