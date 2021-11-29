@@ -331,6 +331,7 @@ class InspirationalGeneration():
         featureExtractors =  None #pytorch_ssim.SSIM()
         imgTransforms = self.encoder
         bp()
+
         fullInputs = torch.tensor(midiToNumpy(midiFile)) #_____(midiFile)
         img, outVectors, loss = self.gradientDescentOnInput(fullInputs,
                                                        featureExtractors,
