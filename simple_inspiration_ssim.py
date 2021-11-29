@@ -315,10 +315,9 @@ class InspirationalGeneration():
         output = self.generator(cords, style, melody, groove).detach()
         # output = model.test(optimalVector, getAvG=True, toCPU=True).detach()
 
-
+        bp()
         print("optimal losses : " + formatCommand.format(
-            *["{:10.6f}".format(optimalLoss[i].item())
-              for i in range(nImages)]))
+            *"{:10.6f}".format(optimalLoss.item())))
         return output, optimalVector, optimalLoss
 
 
