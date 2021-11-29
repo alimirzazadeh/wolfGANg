@@ -262,7 +262,7 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
-                # bp()
+                bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
                 loss = weights[i] * diff
