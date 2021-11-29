@@ -25,6 +25,7 @@ class InspirationalGeneration():
             param.requires_grad = False
         self.device = 'cuda:0'
         self.ssim = pytorch_ssim.SSIM()
+        self.lossTracker = []
 
     def buildFeatureExtractor(self, pathModel, resetGrad=True):
         modelData = torch.load(pathModel)
@@ -109,7 +110,7 @@ class InspirationalGeneration():
                                imageTransforms,
                                weights=None,
                                lambdaD=0.03,
-                               nSteps=6000,
+                               nSteps=600,
                                randomSearch=False,
                                nevergrad=None,
                                lr=1,
@@ -199,7 +200,7 @@ class InspirationalGeneration():
 
         #     if nevergrad is None:
         #         featureExtractors[i].train()
-            bp()
+            # bp()
             featuresIn.append(self.reshaper(imageTransforms[i](input.to(self.device))))
             featuresIn[i].requires_grad = False
 
@@ -262,7 +263,7 @@ class InspirationalGeneration():
 
             for i in range(nExtractors):
                 featureOut = self.reshaper(imageTransforms[i](noiseOut))
-                bp()
+                # bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
                 loss = weights[i] * diff
@@ -270,7 +271,7 @@ class InspirationalGeneration():
 
                 if not randomSearch:
                     retainGraph = (lambdaD > 0) or (i != nExtractors - 1)
-                    bp()
+                    # bp()
                     # output = torch.autograd.grad(loss,varNoise,create_graph=True)
                     loss.sum().backward(retain_graph=retainGraph)
 
@@ -286,6 +287,7 @@ class InspirationalGeneration():
                 sumGrad = torch.sum(varNoise.grad)
             except:
                 sumGrad = 0
+            self.lossTracker.append(sumLoss)
             print("Total Sum: ", sumLoss, " with gradient: ", sumGrad)
             if nevergrad:
                 for i in range(nImages):
