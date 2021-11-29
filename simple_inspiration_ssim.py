@@ -329,7 +329,7 @@ class InspirationalGeneration():
                 resetVar(optimalVector)
 
         z_vector, c_vector = self.splitInputToOOGANParts(optimalVector, batch_size)
-        noiseOut = self.generator(c_vector, z_vector).detach()
+        output = self.generator(c_vector, z_vector).detach()
 
         # cords, style, melody, groove = self.splitInputToParts(optimalVector, batch_size)
         # output = self.generator(cords, style, melody, groove).detach()
@@ -345,7 +345,7 @@ class InspirationalGeneration():
     def inspirational_generation(self, midiFile):
         featureExtractors =  None #pytorch_ssim.SSIM()
         imgTransforms = self.encoder
-        bp()
+        # bp()
 
         fullInputs = torch.tensor(midiToNumpy(midiFile)) #_____(midiFile)
         img, outVectors, loss = self.gradientDescentOnInput(fullInputs,
