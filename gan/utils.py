@@ -8,6 +8,13 @@ import math
 
 import numpy as np
 
+def load_model(gan, g_path, d_path):
+    gan.generator.load_state_dict(torch.load(g_path))
+    gan.critic.load_state_dict(torch.load(d_path))
+
+def save_model(gan, g_path, d_path):
+    torch.save(gan.generator.state_dict(), g_path)
+    torch.save(gan.critic.state_dict(), d_path)
 
 def initialize_weights(layer, mean=0.0, std=0.02):
     if isinstance(layer, (nn.Conv3d, nn.ConvTranspose2d)):

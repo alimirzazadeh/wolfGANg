@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from musegan import MuseGAN
+from gan.utils import save_model, load_model
 from data.utils import MidiDataset
 from ipdb import set_trace as bp
 from data.utils import postProcess
@@ -34,6 +35,8 @@ if __name__ == '__main__':
     print("Start training ...")
     print("Loading dataset ...")
     dataset = MidiDataset(path='data/chorales/Jsb16thSeparated.npz')
+    g_path = "trained_models\\gen.pt"
+    c_path = "trained_models\\cri.pt"
     #bp()
     dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True, drop_last=True)
     print("Loading model ...")
@@ -42,7 +45,8 @@ if __name__ == '__main__':
     finalmodel = musegan.train(dataloader=dataloader, batch_size=args.batch_size, epochs=args.epochs)
     print("Training finished.")
     finalmodel = finalmodel.eval()
-
+    save_model(musegan, g_path, c_path)
+    """
     z = torch.randn(args.batch_size, 10, 32).to(device)
     for i in range(10):
         c = [float(0)]*10
@@ -64,5 +68,5 @@ if __name__ == '__main__':
     # print(music_data)
     filename = f'myexample_.midi'
     music_data.write('midi', fp=filename)
-    
+    """
     
