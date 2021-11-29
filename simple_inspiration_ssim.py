@@ -68,16 +68,19 @@ class InspirationalGeneration():
 
     def encoder(self, output):
         # aa = torch.tensor(output, requires_grad=True)
-        ab = torch.max(output, axis=-1, keepdim=True)
-        ab = ab.values.repeat(1,1,1,1,output.shape[-1])
-        ac = output - ab
-        ae = torch.floor(ac) + 1
-        bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
-        fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
-        # bp()
-        m = nn.ReLU()
-        fin = m(fin)
-        return fin
+        m = nn.Softmax(dim=-1)
+        noiseOut1 = m(output * 10000)
+
+        # ab = torch.max(output, axis=-1, keepdim=True)
+        # ab = ab.values.repeat(1,1,1,1,output.shape[-1])
+        # ac = output - ab
+        # ae = torch.floor(ac) + 1
+        # bb = ae.view(ae.shape[1], ae.shape[2]*ae.shape[3], ae.shape[4])
+        # fin = bb.view(bb.shape[1],bb.shape[0] * bb.shape[2])
+        # # bp()
+        # m = nn.ReLU()
+        # fin = m(fin)
+        return noiseOut1
 
 
 
@@ -196,7 +199,7 @@ class InspirationalGeneration():
 
         #     if nevergrad is None:
         #         featureExtractors[i].train()
-            # bp()
+            bp()
             featuresIn.append(self.reshaper(imageTransforms[i](input.to(self.device))))
             featuresIn[i].requires_grad = False
 
@@ -258,19 +261,7 @@ class InspirationalGeneration():
             # loss.sum(dim=0).backward(retain_graph=True)
 
             for i in range(nExtractors):
-                bp()
-                
-                # for instru in range(noiseOut.shape[1]):
-                #     for sstep in range(noiseOut.shape[2]):
-                #         for bbar in range(noiseOut.shape[3]):
-                #             noiseOut[:,instru,sstep,bbar,:] = torch.clamp(noiseOut[:,instru,sstep,bbar,:],min=0,max=1)
-                # noiseOut1 = torch.log(noiseOut)
-                m = nn.Softmax(dim=-1)
-                noiseOut1 = m(noiseOut)
-                noiseOut2 = noiseOut1.view(noiseOut1.shape[1], noiseOut1.shape[2]*noiseOut1.shape[3], noiseOut1.shape[4])
-                noiseOut3 = noiseOut2.view(noiseOut2.shape[1],noiseOut2.shape[0] * noiseOut2.shape[2])
-                featureOut = self.reshaper(noiseOut3)
-                # featureOut = self.reshaper(imageTransforms[i](noiseOut))
+                featureOut = self.reshaper(imageTransforms[i](noiseOut))
                 # bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
