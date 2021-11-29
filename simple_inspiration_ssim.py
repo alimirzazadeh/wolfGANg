@@ -258,7 +258,13 @@ class InspirationalGeneration():
             # loss.sum(dim=0).backward(retain_graph=True)
 
             for i in range(nExtractors):
-                featureOut = self.reshaper(imageTransforms[i](noiseOut))
+                bp()
+                for row in noiseOut.shape[-1]:
+                    noiseOut[:,:,:,:,row] = torch.clamp(noiseOut[:,:,:,:,row],min=0,max=1)
+                noiseOut2 = noiseOut.view(noiseOut.shape[1], noiseOut.shape[2]*noiseOut.shape[3], noiseOut.shape[4])
+                noiseOut3 = noiseOut2.view(noiseOut2.shape[1],noiseOut2.shape[0] * noiseOut2.shape[2])
+                featureOut = self.reshaper(noiseOut3)
+                # featureOut = self.reshaper(imageTransforms[i](noiseOut))
                 # bp()
                 diff = 1 - (self.ssim(featuresIn[i], featureOut))
                 # bp()
