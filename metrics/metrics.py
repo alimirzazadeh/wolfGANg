@@ -47,12 +47,6 @@ def _to_chroma(pianoroll: ndarray) -> ndarray:
     return np.sum(reshaped, -1)
 
 
-
-
-
-
-
-
 def qnr(pianoroll: ndarray, threshold: float = 2) -> float:
     r"""Return the ratio of the number of the qualified notes.
 
@@ -102,14 +96,17 @@ def qnr(pianoroll: ndarray, threshold: float = 2) -> float:
 
     # my code
     padded = np.pad(pianoroll.astype(np.int), ((1, 1), (0, 0)), "constant")
+    # print(padded.shape)
     diff = np.diff(padded, axis=0)
+    # print(diff.shape)
     flattened = diff.T.reshape(-1,)
+    # print(flattened.shape)
     onsets = (flattened > 0).nonzero()[0]
     offsets = (flattened < 0).nonzero()[0]
+    # print(offsets - onsets)
     #n_qualified_notes = np.count_nonzero(offsets - onsets >= threshold).sum()
     n_qualified_notes = (offsets - onsets >= threshold).sum()
     return n_qualified_notes / len(onsets)
-
 
 
 def _get_tonal_matrix(r1, r2, r3) -> ndarray:
@@ -181,17 +178,17 @@ def tonal_distance(
 def metrics_function(mid_path, verbose=True):
     multitrack = pypianoroll.read(mid_path)
     tracks = multitrack.tracks
-    N = len(tracks) # N may not be 4 depending on the mid file
-    N = 4
+    num_t = len(tracks) # N may not be 4 depending on the mid file
+    num_t = 4
 
     # 1. empty_beat_rate
-    empty_beat_rate = np.zeros((N,))
+    empty_beat_rate = np.zeros((num_t,))
     # 2. qualified_note_rate
-    qualified_note_rate = np.zeros((N,))
+    qualified_note_rate = np.zeros((num_t,))
     # 3. n_pitch_class_used
-    n_pitch_class_used = np.zeros((N,))
+    n_pitch_class_used = np.zeros((num_t,))
     # 4. TD : AB, AC, AD, BC, BD, CD
-    TD = np.zeros((6,))
+    tone_diff = np.zeros((6,))
 
     if verbose:
         print("Multitrack information: \n")
@@ -202,21 +199,24 @@ def metrics_function(mid_path, verbose=True):
         print("========================\n")
         print("tracks= ", tracks)
     td_i = 0
-    for i in range(N): # we can also force it to be 4 if we only need to first 4 tracks
+    for i in range(num_t): # we can also force it to be 4 if we only need to first 4 tracks
         curr_pianoroll = tracks[i].pianoroll
-        empty_beat_rate[i] = pypianoroll.metrics.empty_beat_rate(curr_pianoroll, 24)
-        qualified_note_rate[i] = qnr(curr_pianoroll,2) # , threshold=3
+        a, _ = np.nonzero(curr_pianoroll)
+        empty_beat_rate[i] = 1.0 - a.shape[0]/curr_pianoroll.shape[0]
+        #TODO fix
+        qualified_note_rate[i] = qnr(curr_pianoroll,40) # , threshold=3
+        # print(qualified_note_rate)
         n_pitch_class_used[i] = pypianoroll.n_pitch_classes_used(curr_pianoroll)
 
 
 
-        for j in range(i+1,N):
-            TD[td_i] = tonal_distance(pianoroll_1=tracks[i].pianoroll, pianoroll_2=tracks[j].pianoroll,
+        for j in range(i+1,num_t):
+            tone_diff[td_i] = tonal_distance(pianoroll_1=tracks[i].pianoroll, pianoroll_2=tracks[j].pianoroll,
                                       resolution=24) # resolution=24
             td_i +=1
 
     return {'empty_beat_rate': empty_beat_rate, 'qualified_note_rate': qualified_note_rate,
-            'n_pitch_class_used':n_pitch_class_used, 'TD':TD}
+            'n_pitch_class_used':n_pitch_class_used, 'TD':tone_diff}
 #
 # result = metrics_function("./test_midi/midi_long1.mid", verbose=False)
 # # result = metrics_function("myexample2.mid", verbose=False)

@@ -4,3 +4,5 @@ matplotlib==3.4.2
 music21==6.7.1
 ipdb==0.13.9
 torch==1.10.0
+pypianoroll==1.0.4
+seaborn==0.11.2

@@ -14,7 +14,7 @@ import json
 
 def batch_metrics(folder, verbose=True):
     # N = len(tracks)  # N may not be 4 depending on the mid file
-    N = 4
+    num_midi = 4
 
     # batch_empty_beat_rate = np.zeros((N,))
     # batch_qualified_note_rate = np.zeros((N,))
@@ -30,13 +30,13 @@ def batch_metrics(folder, verbose=True):
 
     for (_, _, files) in os.walk(folder):
         total_files = len(files)
-        if total_files > 100:
-            files = files[:100]
+        if total_files > 2:
+            files = files[:2]
         for file in files:
 
             if file.endswith('.mid'):
                 mid_path = folder + '/' + file
-                each = metrics_function(mid_path, verbose=False)
+                each = metrics_function(mid_path, verbose=verbose)
 
                 # batch_empty_beat_rate += each['empty_beat_rate']
                 # batch_qualified_note_rate += each['qualified_note_rate']
@@ -60,7 +60,7 @@ def batch_metrics(folder, verbose=True):
 def jsontoDict(res):
     with open(res,'r') as j:
         contents = json.loads(j.read())
-        print(contents)
+        # print(contents)
     # jsonkeys = list(contents)
     # print(jsonkeys[:4])
     # res = {r:jsonf[r] for r in jsonkeys[:4]}
@@ -96,9 +96,11 @@ def prob_metrics(res):# takes in json file
         avg_track = avg_pertrack(res) #create table
 
 
-
+    print()
     print("avg_midi", avg_midi)
+    print()
     print("avg_track", avg_track)
+    print()
     # track_metrics = {}
     #
     # #metrics per track
